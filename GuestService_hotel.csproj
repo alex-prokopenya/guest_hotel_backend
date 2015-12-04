@@ -1,0 +1,421 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{15FBDD37-1889-4CDA-8355-C3F6D4AFDA8F}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <AssemblyName>GuestService</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <OutputPath>..\..\Visual Studio 2015\WebSites\guestservice_hotel\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework">
+      <HintPath>..\..\..\..\Temp\bin\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="PayPalCoreSDK">
+      <HintPath>..\..\..\..\Temp\bin\PayPalCoreSDK.dll</HintPath>
+    </Reference>
+    <Reference Include="RazorEngine, Version=3.7.4.0, Culture=neutral, PublicKeyToken=9ee697374c7e744a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>packages\RazorEngine.3.7.4\lib\net40\RazorEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="Sm.System.Mvc">
+      <HintPath>..\..\..\..\Temp\bin\Sm.System.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Temp\bin\System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Temp\bin\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetOpenAuth.AspNet">
+      <HintPath>..\..\..\..\Temp\bin\DotNetOpenAuth.AspNet.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Data" />
+    <Reference Include="System" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.Web.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Temp\bin\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Temp\bin\System.Web.Http.WebHost.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=4.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Temp\bin\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Web.Optimization">
+      <HintPath>..\..\..\..\Temp\bin\System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="Sm.System">
+      <HintPath>..\..\..\..\Temp\bin\Sm.System.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="PayPalMerchantSDK">
+      <HintPath>..\..\..\..\Temp\bin\PayPalMerchantSDK.dll</HintPath>
+    </Reference>
+    <Reference Include="Sm.Report">
+      <HintPath>..\..\..\..\Temp\bin\Sm.Report.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\Temp\bin\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="WebMatrix.WebData" />
+    <Reference Include="Microsoft.Web.WebPages.OAuth" />
+    <Reference Include="System.Data.Entity" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_GlobalResources\Resource1.Designer.cs" />
+    <Compile Include="GuestService.Code.Payment\UnitellerPaymentResult.cs" />
+    <Compile Include="GuestService.Code\HttpPreferences.cs" />
+    <Compile Include="GuestService.Code\HttpPreferencesAttribute.cs" />
+    <Compile Include="GuestService.Code\HttpPreferencesManager.cs" />
+    <Compile Include="GuestService.Code\HttpRequestBaseExtension.cs" />
+    <Compile Include="GuestService.Code\ImageCacheItem.cs" />
+    <Compile Include="GuestService.Code\QuestionnaireExtension.cs" />
+    <Compile Include="GuestService.Code\ResourceManagerExtension.cs" />
+    <Compile Include="GuestService.Code\VKontakteAuthenticationClient.cs" />
+    <Compile Include="GuestService.Code\WebSecurityInitializer.cs" />
+    <Compile Include="GuestService.Controllers.Api\BookingController.cs" />
+    <Compile Include="GuestService.Controllers.Api\CatalogController.cs" />
+    <Compile Include="GuestService.Controllers.Api\ExcursionController.cs" />
+    <Compile Include="GuestService.Controllers.Api\GuestController.cs" />
+    <Compile Include="GuestService.Controllers.Api\GuideController.cs" />
+    <Compile Include="GuestService.Controllers.Api\HotelController.cs" />
+    <Compile Include="GuestService.Controllers.Api\PartnerController.cs" />
+    <Compile Include="GuestService.Controllers.Api\PartnerExcursionController.cs" />
+    <Compile Include="GuestService.Controllers.Html\AccountController.cs" />
+    <Compile Include="GuestService.Controllers.Html\BookingController.cs" />
+    <Compile Include="GuestService.Controllers.Html\CustomizationController.cs" />
+    <Compile Include="GuestService.Controllers.Html\ErrorController.cs" />
+    <Compile Include="GuestService.Controllers.Html\ExcursionController.cs" />
+    <Compile Include="GuestService.Controllers.Html\GuestController.cs" />
+    <Compile Include="GuestService.Controllers.Html\PartnerController.cs" />
+    <Compile Include="GuestService.Controllers.Html\PartnerExcursionController.cs" />
+    <Compile Include="GuestService.Controllers.Html\PaymentController.cs" />
+    <Compile Include="GuestService.Controllers.Html\PaymentProcessingController.cs" />
+    <Compile Include="GuestService.Controllers.Html\SurveyController.cs" />
+    <Compile Include="GuestService.Controllers.Html\WelcomeController.cs" />
+    <Compile Include="GuestService.Data.Survey\CharacteristicRank.cs" />
+    <Compile Include="GuestService.Data.Survey\ExcursionInvitation.cs" />
+    <Compile Include="GuestService.Data.Survey\ExcursionRank.cs" />
+    <Compile Include="GuestService.Data.Survey\ExcursionRankInfo.cs" />
+    <Compile Include="GuestService.Data.Survey\SurveyCustomerModel.cs" />
+    <Compile Include="GuestService.Data.Survey\SurveyNote.cs" />
+    <Compile Include="GuestService.Data.Survey\SurveyNoteItem.cs" />
+    <Compile Include="GuestService.Data.Survey\SurveyQuestionModel.cs" />
+    <Compile Include="GuestService.Data.Survey\SurveyResultsModel.cs" />
+    <Compile Include="GuestService.Data\AddExcursionData.cs" />
+    <Compile Include="GuestService.Data\Airport.cs" />
+    <Compile Include="GuestService.Data\BookingAgreement.cs" />
+    <Compile Include="GuestService.Data\BookingClaim.cs" />
+    <Compile Include="GuestService.Data\BookingClaimSaveResult.cs" />
+    <Compile Include="GuestService.Data\BookingExcursion.cs" />
+    <Compile Include="GuestService.Data\BookingExcursionService.cs" />
+    <Compile Include="GuestService.Data\BookingOrder.cs" />
+    <Compile Include="GuestService.Data\BookingPax.cs" />
+    <Compile Include="GuestService.Data\BookingProvider.cs" />
+    <Compile Include="GuestService.Data\CatalogDescriptionExcursionRanking.cs" />
+    <Compile Include="GuestService.Data\CatalogDescriptionExcursionRankItem.cs" />
+    <Compile Include="GuestService.Data\CatalogExcursion.cs" />
+    <Compile Include="GuestService.Data\CatalogExcursionMinPrice.cs" />
+    <Compile Include="GuestService.Data\CatalogExcursionRanking.cs" />
+    <Compile Include="GuestService.Data\CatalogFilterCategoryGroup.cs" />
+    <Compile Include="GuestService.Data\CatalogFilterDuration.cs" />
+    <Compile Include="GuestService.Data\CatalogFilterItem.cs" />
+    <Compile Include="GuestService.Data\CatalogFilterLocationItem.cs" />
+    <Compile Include="GuestService.Data\CatalogFilterLocationWithStateItem.cs" />
+    <Compile Include="GuestService.Data\CatalogProvider.cs" />
+    <Compile Include="GuestService.Data\CatalogResult.cs" />
+    <Compile Include="GuestService.Data\Category.cs" />
+    <Compile Include="GuestService.Data\CategoryGroup.cs" />
+    <Compile Include="GuestService.Data\CategoryGroupWithCategories.cs" />
+    <Compile Include="GuestService.Data\CategoryGroupWithCategoriesList.cs" />
+    <Compile Include="GuestService.Data\CategoryWithGroup.cs" />
+    <Compile Include="GuestService.Data\CategoryWithGroupList.cs" />
+    <Compile Include="GuestService.Data\CompleteOperation.cs" />
+    <Compile Include="GuestService.Data\CompleteOperationProvider.cs" />
+    <Compile Include="GuestService.Data\CompleteOperationResult.cs" />
+    <Compile Include="GuestService.Data\ConfirmInvoiceResult.cs" />
+    <Compile Include="GuestService.Data\Customer.cs" />
+    <Compile Include="GuestService.Data\CustomerPassport.cs" />
+    <Compile Include="GuestService.Data\DatePeriod.cs" />
+    <Compile Include="GuestService.Data\DepartureDestinationHotel.cs" />
+    <Compile Include="GuestService.Data\DepartureFlight.cs" />
+    <Compile Include="GuestService.Data\DepartureHotel.cs" />
+    <Compile Include="GuestService.Data\DepartureMember.cs" />
+    <Compile Include="GuestService.Data\DeparturesResult.cs" />
+    <Compile Include="GuestService.Data\DepartureTransfer.cs" />
+    <Compile Include="GuestService.Data\DepartureWorker.cs" />
+    <Compile Include="GuestService.Data\DestinationsAndCategoryGroupsResult.cs" />
+    <Compile Include="GuestService.Data\ExcursionCategory.cs" />
+    <Compile Include="GuestService.Data\ExcursionContact.cs" />
+    <Compile Include="GuestService.Data\ExcursionDate.cs" />
+    <Compile Include="GuestService.Data\ExcursionDateList.cs" />
+    <Compile Include="GuestService.Data\ExcursionDescription.cs" />
+    <Compile Include="GuestService.Data\ExcursionDescriptionList.cs" />
+    <Compile Include="GuestService.Data\ExcursionDescriptionSection.cs" />
+    <Compile Include="GuestService.Data\ExcursionExtendedDescription.cs" />
+    <Compile Include="GuestService.Data\ExcursionExtendedDescriptionList.cs" />
+    <Compile Include="GuestService.Data\ExcursionGroup.cs" />
+    <Compile Include="GuestService.Data\ExcursionOrder.cs" />
+    <Compile Include="GuestService.Data\ExcursionOrderCalculatePrice.cs" />
+    <Compile Include="GuestService.Data\ExcursionPickup.cs" />
+    <Compile Include="GuestService.Data\ExcursionPickupHotel.cs" />
+    <Compile Include="GuestService.Data\ExcursionPickupHotelsList.cs" />
+    <Compile Include="GuestService.Data\ExcursionPicture.cs" />
+    <Compile Include="GuestService.Data\ExcursionPrice.cs" />
+    <Compile Include="GuestService.Data\ExcursionPriceList.cs" />
+    <Compile Include="GuestService.Data\ExcursionProvider.cs" />
+    <Compile Include="GuestService.Data\ExcursionReservationGroup.cs" />
+    <Compile Include="GuestService.Data\ExcursionReservationLanguage.cs" />
+    <Compile Include="GuestService.Data\ExcursionReservationOrder.cs" />
+    <Compile Include="GuestService.Data\ExcursionReservationTime.cs" />
+    <Compile Include="GuestService.Data\ExcursionSurveyNote.cs" />
+    <Compile Include="GuestService.Data\ExcursionTime.cs" />
+    <Compile Include="GuestService.Data\ExcursionTransfer.cs" />
+    <Compile Include="GuestService.Data\ExcursionVoucher.cs" />
+    <Compile Include="GuestService.Data\FilterDetailsResult.cs" />
+    <Compile Include="GuestService.Data\FiltersResult.cs" />
+    <Compile Include="GuestService.Data\FreightPoint.cs" />
+    <Compile Include="GuestService.Data\FreightReservationBookingclass.cs" />
+    <Compile Include="GuestService.Data\FreightReservationOrder.cs" />
+    <Compile Include="GuestService.Data\FreightReservationPlace.cs" />
+    <Compile Include="GuestService.Data\GeoArea.cs" />
+    <Compile Include="GuestService.Data\GeoCatalogObject.cs" />
+    <Compile Include="GuestService.Data\GeoCatalogObjectList.cs" />
+    <Compile Include="GuestService.Data\GeoLocation.cs" />
+    <Compile Include="GuestService.Data\GuestClaim.cs" />
+    <Compile Include="GuestService.Data\GuestOrder.cs" />
+    <Compile Include="GuestService.Data\GuestProvider.cs" />
+    <Compile Include="GuestService.Data\Guide.cs" />
+    <Compile Include="GuestService.Data\GuideDuty.cs" />
+    <Compile Include="GuestService.Data\GuideDutyTime.cs" />
+    <Compile Include="GuestService.Data\GuideProvider.cs" />
+    <Compile Include="GuestService.Data\HotelCatalogObject.cs" />
+    <Compile Include="GuestService.Data\HotelGuide.cs" />
+    <Compile Include="GuestService.Data\HotelGuideDurty.cs" />
+    <Compile Include="GuestService.Data\HotelGuideResult.cs" />
+    <Compile Include="GuestService.Data\HotelReservationHtplace.cs" />
+    <Compile Include="GuestService.Data\HotelReservationMeal.cs" />
+    <Compile Include="GuestService.Data\HotelReservationOrder.cs" />
+    <Compile Include="GuestService.Data\HotelReservationRoom.cs" />
+    <Compile Include="GuestService.Data\HotelStar.cs" />
+    <Compile Include="GuestService.Data\InvitationInfo.cs" />
+    <Compile Include="GuestService.Data\IPartnerParam.cs" />
+    <Compile Include="GuestService.Data\IStartPointAndLanguageAndPriceOptionParam.cs" />
+    <Compile Include="GuestService.Data\IStartPointAndLanguageParam.cs" />
+    <Compile Include="GuestService.Data\Language.cs" />
+    <Compile Include="GuestService.Data\MembershipHelper.cs" />
+    <Compile Include="GuestService.Data\OrderPrice.cs" />
+    <Compile Include="GuestService.Data\Partner.cs" />
+    <Compile Include="GuestService.Data\PartnerClaim.cs" />
+    <Compile Include="GuestService.Data\PartnerExcursionProvider.cs" />
+    <Compile Include="GuestService.Data\PartnerOrder.cs" />
+    <Compile Include="GuestService.Data\PartnerProvider.cs" />
+    <Compile Include="GuestService.Data\PaymentBeforeProcessingResult.cs" />
+    <Compile Include="GuestService.Data\PaymentMode.cs" />
+    <Compile Include="GuestService.Data\PickupPlace.cs" />
+    <Compile Include="GuestService.Data\PriceDetails.cs" />
+    <Compile Include="GuestService.Data\PriceSummary.cs" />
+    <Compile Include="GuestService.Data\QuestionnaireGroup.cs" />
+    <Compile Include="GuestService.Data\QuestionnaireIssue.cs" />
+    <Compile Include="GuestService.Data\QuestionnaireQuestion.cs" />
+    <Compile Include="GuestService.Data\Region.cs" />
+    <Compile Include="GuestService.Data\ReservationAction.cs" />
+    <Compile Include="GuestService.Data\ReservationConfirmStatus.cs" />
+    <Compile Include="GuestService.Data\ReservationCustomer.cs" />
+    <Compile Include="GuestService.Data\ReservationError.cs" />
+    <Compile Include="GuestService.Data\ReservationErrorType.cs" />
+    <Compile Include="GuestService.Data\ReservationOrder.cs" />
+    <Compile Include="GuestService.Data\ReservationOrderPartner.cs" />
+    <Compile Include="GuestService.Data\ReservationOrderPrice.cs" />
+    <Compile Include="GuestService.Data\ReservationPartner.cs" />
+    <Compile Include="GuestService.Data\ReservationPax.cs" />
+    <Compile Include="GuestService.Data\ReservationPeople.cs" />
+    <Compile Include="GuestService.Data\ReservationPeoplePassport.cs" />
+    <Compile Include="GuestService.Data\ReservationPrice.cs" />
+    <Compile Include="GuestService.Data\ReservationState.cs" />
+    <Compile Include="GuestService.Data\ReservationStatus.cs" />
+    <Compile Include="GuestService.Data\SearchExcursionResult.cs" />
+    <Compile Include="GuestService.Data\SearchGeography.cs" />
+    <Compile Include="GuestService.Data\ServiceReservationOrder.cs" />
+    <Compile Include="GuestService.Data\ServiceReservationServicetype.cs" />
+    <Compile Include="GuestService.Data\SurveyProvider.cs" />
+    <Compile Include="GuestService.Data\TimePeriod.cs" />
+    <Compile Include="GuestService.Data\Town.cs" />
+    <Compile Include="GuestService.Data\TransferReservationOrder.cs" />
+    <Compile Include="GuestService.Data\UserToolsProvider.cs" />
+    <Compile Include="GuestService.Data\WebPartner.cs" />
+    <Compile Include="GuestService.Models.Booking\AgreementParam.cs" />
+    <Compile Include="GuestService.Models.Booking\BookingAgreementContext.cs" />
+    <Compile Include="GuestService.Models.Booking\BookingCartParam.cs" />
+    <Compile Include="GuestService.Models.Booking\BookingCartResult.cs" />
+    <Compile Include="GuestService.Models.Booking\BookingCartWebParam.cs" />
+    <Compile Include="GuestService.Models.Booking\BookingContext.cs" />
+    <Compile Include="GuestService.Models.Booking\BookingModel.cs" />
+    <Compile Include="GuestService.Models.Booking\BookingOrderModel.cs" />
+    <Compile Include="GuestService.Models.Booking\ShoppingCart.cs" />
+    <Compile Include="GuestService.Models.Booking\StatusParams.cs" />
+    <Compile Include="GuestService.Models.Catalog\GeoCatalogParam.cs" />
+    <Compile Include="GuestService.Models.Catalog\GeoPointByAliasParam.cs" />
+    <Compile Include="GuestService.Models.Context\GuideHotelDutiesContext.cs" />
+    <Compile Include="GuestService.Models.Excursion\CatalogImageParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\CatalogParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\CategoryParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\DatesParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\DepartureParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\DescriptionParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\DestinationAndCategoryParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\ExcursionAddWebParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\ExcursionIndexContext.cs" />
+    <Compile Include="GuestService.Models.Excursion\ExcursionIndexNavigateCommand.cs" />
+    <Compile Include="GuestService.Models.Excursion\ExcursionIndexNavigateOptions.cs" />
+    <Compile Include="GuestService.Models.Excursion\ExcursionIndexWebParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\ExcursionPickupHotelsParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\ExtendedDescriptionParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\FiltersParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\PriceParam.cs" />
+    <Compile Include="GuestService.Models.Excursion\SearchParam.cs" />
+    <Compile Include="GuestService.Models.Guest\BriefContext.cs" />
+    <Compile Include="GuestService.Models.Guest\DepartureContext.cs" />
+    <Compile Include="GuestService.Models.Guest\DepartureParam.cs" />
+    <Compile Include="GuestService.Models.Guest\FindOrderContext.cs" />
+    <Compile Include="GuestService.Models.Guest\FindOrderModel.cs" />
+    <Compile Include="GuestService.Models.Guest\GuestContext.cs" />
+    <Compile Include="GuestService.Models.Guest\GuestWebParams.cs" />
+    <Compile Include="GuestService.Models.Guest\LinkOrderModel.cs" />
+    <Compile Include="GuestService.Models.Guest\OrderContext.cs" />
+    <Compile Include="GuestService.Models.Guest\OrderModel.cs" />
+    <Compile Include="GuestService.Models.Guest\UserBalanceContext.cs" />
+    <Compile Include="GuestService.Models.Guest\PrintOrderContext.cs" />
+    <Compile Include="GuestService.Models.Guest\PrintOrderModel.cs" />
+    <Compile Include="GuestService.Models.Guest\SummaryContext.cs" />
+    <Compile Include="GuestService.Models.Guest\UnlinkOrderModel.cs" />
+    <Compile Include="GuestService.Models.Guide\HotelGuideParam.cs" />
+    <Compile Include="GuestService.Models.Partner\AddExcursionContext.cs" />
+    <Compile Include="GuestService.Models.Partner\PartnerBalanceContext.cs" />
+    <Compile Include="GuestService.Models.Partner\PartnerContext.cs" />
+    <Compile Include="GuestService.Models.Partner\PartnerExcursionModel.cs" />
+    <Compile Include="GuestService.Models.Partner\PartnerOrderContext.cs" />
+    <Compile Include="GuestService.Models.Partner\PartnerOrderModel.cs" />
+    <Compile Include="GuestService.Models.Payment\PaymentContext.cs" />
+    <Compile Include="GuestService.Models.Payment\PaymentModel.cs" />
+    <Compile Include="GuestService.Models.Payment\PaymentResultContext.cs" />
+    <Compile Include="GuestService.Models.Payment\ProcessingContext.cs" />
+    <Compile Include="GuestService.Models.Payment\ProcessingModel.cs" />
+    <Compile Include="GuestService.Models.Payment\ProcessingResultModel.cs" />
+    <Compile Include="GuestService.Models.Welcome\GuestInfoContext.cs" />
+    <Compile Include="GuestService.Models.Welcome\WelcomeParam.cs" />
+    <Compile Include="GuestService.Models\AddExcursion.cs" />
+    <Compile Include="GuestService.Models\BaseApiParam.cs" />
+    <Compile Include="GuestService.Models\ExternalLogin.cs" />
+    <Compile Include="GuestService.Models\ImageParam.cs" />
+    <Compile Include="GuestService.Models\LocalPasswordModel.cs" />
+    <Compile Include="GuestService.Models\LoginModel.cs" />
+    <Compile Include="GuestService.Models\RecoveryModel.cs" />
+    <Compile Include="GuestService.Models\RegisterExternalLoginModel.cs" />
+    <Compile Include="GuestService.Models\RegisterModel.cs" />
+    <Compile Include="GuestService.Models\RequestSettings.cs" />
+    <Compile Include="GuestService.Models\RequestSettingsExtension.cs" />
+    <Compile Include="GuestService.Models\ResetPasswordModel.cs" />
+    <Compile Include="GuestService.Models\UserProfile.cs" />
+    <Compile Include="GuestService.Models\UsersContext.cs" />
+    <Compile Include="GuestService.Notifications\EmailMessage.cs" />
+    <Compile Include="GuestService.Notifications\SimpleEmailService.cs" />
+    <Compile Include="GuestService.Notifications\SmsSender.cs" />
+    <Compile Include="GuestService.Notifications\TemplateParser.cs" />
+    <Compile Include="GuestService.Resources\AccountStrings.cs" />
+    <Compile Include="GuestService.Resources\BookingStrings.cs" />
+    <Compile Include="GuestService.Resources\ExcursionStrings.cs" />
+    <Compile Include="GuestService.Resources\GuestStrings.cs" />
+    <Compile Include="GuestService.Resources\PaymentStrings.cs" />
+    <Compile Include="GuestService.Resources\Pictures.cs" />
+    <Compile Include="GuestService.Resources\SharedStrings.cs" />
+    <Compile Include="GuestService\AuthConfig.cs" />
+    <Compile Include="GuestService\BundleConfig.cs" />
+    <Compile Include="GuestService\CustomizationPath.cs" />
+    <Compile Include="GuestService\FilterConfig.cs" />
+    <Compile Include="GuestService\ImageFormatter.cs" />
+    <Compile Include="GuestService\ImageHandler.cs" />
+    <Compile Include="GuestService\MvcApplication.cs" />
+    <Compile Include="GuestService\PaymentPaypalSettings.cs" />
+    <Compile Include="GuestService\RouteConfig.cs" />
+    <Compile Include="GuestService\Settings.cs" />
+    <Compile Include="GuestService\ViewEngineConfig.cs" />
+    <Compile Include="GuestService\WebApiConfig.cs" />
+    <Compile Include="GuestService\WebSecurityInitializerAttribute.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="App_GlobalResources\GuestStrings.resx" />
+    <EmbeddedResource Include="App_GlobalResources\Resource1.resx" />
+    <EmbeddedResource Include="GuestService.Resources\AccountStrings.de.resx" />
+    <EmbeddedResource Include="GuestService.Resources\AccountStrings.el.resx" />
+    <EmbeddedResource Include="GuestService.Resources\AccountStrings.resx" />
+    <EmbeddedResource Include="GuestService.Resources\BookingStrings.de.resx" />
+    <EmbeddedResource Include="GuestService.Resources\BookingStrings.el.resx" />
+    <EmbeddedResource Include="GuestService.Resources\BookingStrings.resx" />
+    <EmbeddedResource Include="GuestService.Resources\ExcursionStrings.de.resx" />
+    <EmbeddedResource Include="GuestService.Resources\ExcursionStrings.el.resx" />
+    <EmbeddedResource Include="GuestService.Resources\ExcursionStrings.resx" />
+    <EmbeddedResource Include="GuestService.Resources\GuestStrings.de.resx" />
+    <EmbeddedResource Include="GuestService.Resources\GuestStrings.el.resx" />
+    <EmbeddedResource Include="GuestService.Resources\GuestStrings.resx" />
+    <EmbeddedResource Include="GuestService.Resources\PaymentStrings.de.resx" />
+    <EmbeddedResource Include="GuestService.Resources\PaymentStrings.el.resx" />
+    <EmbeddedResource Include="GuestService.Resources\PaymentStrings.resx" />
+    <EmbeddedResource Include="GuestService.Resources\SharedStrings.de.resx" />
+    <EmbeddedResource Include="GuestService.Resources\SharedStrings.el.resx" />
+    <EmbeddedResource Include="GuestService.Resources\SharedStrings.resx" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\78777.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

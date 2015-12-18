@@ -6,6 +6,7 @@ namespace GuestService.Controllers.Html
     using GuestService.Data;
     using GuestService.Models;
     using GuestService.Resources;
+    using GuestService.Notifications;
     using Microsoft.Web.WebPages.OAuth;
     using Sm.System.Mvc.Language;
     using System;
@@ -15,6 +16,10 @@ namespace GuestService.Controllers.Html
     using System.Web.Security;
     using System.Xml.Linq;
     using WebMatrix.WebData;
+    using System.Web;
+    using System.Configuration;
+
+    using System.IO;
 
     [Authorize, HttpPreferences, UrlLanguage, WebSecurityInitializer]
     public class AccountController : BaseController
@@ -276,6 +281,157 @@ namespace GuestService.Controllers.Html
 
         [AllowAnonymous]
         public ActionResult RegisterSuccess(string returnUrl)
+        {
+            ((dynamic)base.ViewBag).ReturnUrl = returnUrl;
+            return base.View();
+        }
+
+        [AllowAnonymous]
+        public ActionResult RegisterProvider(string returnUrl)
+        {
+            RegisterProviderModel model = new RegisterProviderModel();
+            ((dynamic)base.ViewBag).ReturnUrl = returnUrl;
+            return base.View(model);
+        }
+
+        [ValidateAntiForgeryToken, HttpPost, AllowAnonymous]
+        public ActionResult RegisterProvider(RegisterProviderModel model, string returnUrl)
+        {
+            if (base.ModelState.IsValid)
+            {
+                try
+                {
+             
+
+                    bool requireConfirmationToken = true;
+                    string confirmationToken = WebSecurity.CreateUserAndAccount(model.UserName, model.Password, null, requireConfirmationToken);
+                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken);
+
+                    //add info to partners table
+                    PartnerProvider.AddPartnersInfo(model);
+
+                    //send email to manager
+                    var fileName = System.IO.Path.GetFileName(model.Insurance.FileName);
+                    var path = System.IO.Path.Combine(Server.MapPath("~/MediaUploader"), Guid.NewGuid().ToString() + fileName);
+                    model.Insurance.SaveAs(path);
+
+                    var fileNameDocs = System.IO.Path.GetFileName(model.ConstitutiveDocs.FileName);
+                    var pathDocs = System.IO.Path.Combine(Server.MapPath("~/MediaUploader"), Guid.NewGuid().ToString() + fileNameDocs);
+                    model.ConstitutiveDocs.SaveAs(pathDocs);
+
+
+                    new SimpleEmailService().SendEmail<RegisterProviderModel>(ConfigurationManager.AppSettings.Get("partner_registation_email"),
+                                                                                "add_provider",
+                                                                                "en",
+                                                                                model,
+                                                                                true,
+                                                                                new KeyValuePair<string,string>[] { new KeyValuePair<string,string> (path,model.Insurance.ContentType ),
+                                                                                                                    new KeyValuePair<string,string> (pathDocs,model.ConstitutiveDocs.ContentType)});
+
+                    return base.RedirectToAction("registerprovidersuccess", new { returnUrl = returnUrl });
+                }
+                catch (MembershipCreateUserException exception)
+                {
+                    base.ModelState.AddModelError("", ErrorCodeToString(exception.StatusCode));
+                }
+            }
+            ((dynamic)base.ViewBag).ReturnUrl = returnUrl;
+            return base.View(model);
+        }
+
+        [AllowAnonymous]
+        public ActionResult RegisterProviderSuccess(string returnUrl)
+        {
+            ((dynamic)base.ViewBag).ReturnUrl = returnUrl;
+            return base.View();
+        }
+
+
+        [AllowAnonymous]
+        public ActionResult RegisterAgentWeb(string returnUrl)
+        {
+            var model = new RegisterAgentWebModel();
+            ((dynamic)base.ViewBag).ReturnUrl = returnUrl;
+            return base.View(model);
+        }
+
+        [ValidateAntiForgeryToken, HttpPost, AllowAnonymous]
+        public ActionResult RegisterAgentWeb(RegisterAgentWebModel model, string returnUrl)
+        {
+            if (base.ModelState.IsValid)
+            {
+                try
+                {
+                    bool requireConfirmationToken = true;
+                    string confirmationToken = WebSecurity.CreateUserAndAccount(model.UserName, model.Password, null, requireConfirmationToken);
+                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken);
+
+                    //add info to partners table
+                    PartnerProvider.AddPartnersInfo(model);
+
+                    new SimpleEmailService().SendEmail<RegisterAgentWebModel>(ConfigurationManager.AppSettings.Get("partner_registation_email"),
+                                                                                "add_agent_web",
+                                                                                "en",
+                                                                                model
+                                                                               );
+
+                    return base.RedirectToAction("registeragentwebsuccess", new { returnUrl = returnUrl });
+                }
+                catch (MembershipCreateUserException exception)
+                {
+                    base.ModelState.AddModelError("", ErrorCodeToString(exception.StatusCode));
+                }
+            }
+          ((dynamic)base.ViewBag).ReturnUrl = returnUrl;
+            return base.View(model);
+        }
+
+        [AllowAnonymous]
+        public ActionResult RegisterAgentWebSuccess(string returnUrl)
+        {
+            ((dynamic)base.ViewBag).ReturnUrl = returnUrl;
+            return base.View();
+        }
+
+        [AllowAnonymous]
+        public ActionResult RegisterAgentTerm(string returnUrl)
+        {
+            var model = new RegisterAgentTermModel();
+            ((dynamic)base.ViewBag).ReturnUrl = returnUrl;
+            return base.View(model);
+        }
+        [ValidateAntiForgeryToken, HttpPost, AllowAnonymous]
+        public ActionResult RegisterAgentTerm(RegisterAgentTermModel model, string returnUrl)
+        {
+            if (base.ModelState.IsValid)
+            {
+                try
+                {
+                    bool requireConfirmationToken = true;
+                    string confirmationToken = WebSecurity.CreateUserAndAccount(model.UserName, model.Password, null, requireConfirmationToken);
+                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken);
+
+                    //add info to partners table
+                    PartnerProvider.AddPartnersInfo(model);
+
+                    new SimpleEmailService().SendEmail<RegisterAgentTermModel>(ConfigurationManager.AppSettings.Get("partner_registation_email"),
+                                                                                "add_agent_term",
+                                                                                "en",
+                                                                                model);
+
+                    return base.RedirectToAction("registeragenttermsuccess", new { returnUrl = returnUrl });
+                }
+                catch (MembershipCreateUserException exception)
+                {
+                    base.ModelState.AddModelError("", ErrorCodeToString(exception.StatusCode));
+                }
+            }
+          ((dynamic)base.ViewBag).ReturnUrl = returnUrl;
+            return base.View(model);
+        }
+
+        [AllowAnonymous]
+        public ActionResult RegisterAgentTermSuccess(string returnUrl)
         {
             ((dynamic)base.ViewBag).ReturnUrl = returnUrl;
             return base.View();

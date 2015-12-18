@@ -348,6 +348,9 @@
     <Compile Include="GuestService.Models\LoginModel.cs" />
     <Compile Include="GuestService.Models\RecoveryModel.cs" />
     <Compile Include="GuestService.Models\RegisterExternalLoginModel.cs" />
+    <Compile Include="GuestService.Models\RegisterAgentWebModel.cs" />
+    <Compile Include="GuestService.Models\RegisterAgentTermModel.cs" />
+    <Compile Include="GuestService.Models\RegisterProviderModel.cs" />
     <Compile Include="GuestService.Models\RegisterModel.cs" />
     <Compile Include="GuestService.Models\RequestSettings.cs" />
     <Compile Include="GuestService.Models\RequestSettingsExtension.cs" />
@@ -389,7 +392,9 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="App_GlobalResources\GuestStrings.resx" />
+    <EmbeddedResource Include="App_GlobalResources\GuestStrings.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="App_GlobalResources\Resource1.resx" />
     <EmbeddedResource Include="GuestService.Resources\AccountStrings.de.resx" />
     <EmbeddedResource Include="GuestService.Resources\AccountStrings.el.resx" />

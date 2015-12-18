@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Net.Mime;
 using System.IO;
 using System.Web.Mvc;
+using System.Collections.Generic;
 
 //УВЕДОМЛЕНИЯ ОТ САМО ГЕНЕРИРУЮТСЯ В ХРАНИМКЕ [dbo].[up_booking_notification_processor]
 namespace GuestService.Notifications
@@ -16,14 +17,14 @@ namespace GuestService.Notifications
 
         }
 
-        public void SendEmail<T>(string to, string templateName, string language, T model, bool throwException = false)
+        public void SendEmail<T>(string to, string templateName, string language, T model, bool throwException, KeyValuePair<string, string>[] files = null)
         {
 
             try
             {
                 var content = TemplateParser.ParseMessage(templateName, language, "Email", model);
 
-                var message = BuildMessage(to, content.Subject, content.Body);
+                var message = BuildMessage(to, content.Subject, content.Body, files);
 
 
                 var client = new SmtpClient(ConfigurationManager.AppSettings.Get("smtp_server"),
@@ -48,14 +49,17 @@ namespace GuestService.Notifications
             }
         }
 
-        private MailMessage BuildMessage(string to, string subject, string content)
+        public void SendEmail<T>(string to, string templateName, string language, T model, bool throwException = false)
         {
-            Console.WriteLine(content);
+            SendEmail<T>(to, templateName, language, model, throwException, null);
+        }
 
+        private MailMessage BuildMessage(string to, string subject, string content,  KeyValuePair<string, string>[] files = null)
+        {
             string htmlBody = content;
             AlternateView avHtml = AlternateView.CreateAlternateViewFromString
                 (htmlBody, new System.Text.UTF8Encoding(), MediaTypeNames.Text.Html);
-
+            
             // Create a LinkedResource object for each embedded image
             LinkedResource pic1 = null;
 
@@ -71,10 +75,21 @@ namespace GuestService.Notifications
 
             pic1.ContentId = "logo";
             avHtml.LinkedResources.Add(pic1);
-
+            
             // Add the alternate views instead of using MailMessage.Body
             MailMessage m = new MailMessage();
             m.AlternateViews.Add(avHtml);
+
+            if (files != null)
+            {
+                foreach (KeyValuePair<string, string> fileName in files)
+                {
+                    System.Net.Mail.Attachment attachment = new System.Net.Mail.Attachment(fileName.Key, fileName.Value );
+                    var tmp = fileName.Key.Split('\\');
+                    attachment.Name = tmp[tmp.Length - 1] ;  // set name here
+                    m.Attachments.Add(attachment);
+                }
+            }
 
             // Address and send the message
             m.From = new MailAddress(ConfigurationManager.AppSettings.Get("smtp_user"), "ExGo.com info");

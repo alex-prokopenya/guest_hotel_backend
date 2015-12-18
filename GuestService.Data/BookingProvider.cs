@@ -762,7 +762,7 @@ namespace GuestService.Data
 
                 Task[] tasks = new Task[]
                                 {
-                                    Task.Factory.StartNew(() => new SimpleEmailService().SendEmail<ReservationState>(reservation.customer.mail, "payment", reservation.customer.language, reservation)),
+                                    Task.Factory.StartNew(() => new SimpleEmailService().SendEmail<ReservationState>(reservation.customer.mail, "payment", reservation.customer.language, reservation, false, null)),
                                     Task.Factory.StartNew(() => new SmsSender().SendMessage<ReservationState>(reservation.customer.phone, "payment", reservation.customer.language, reservation))
                                 };
 

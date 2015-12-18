@@ -58,7 +58,7 @@ namespace GuestService.Resources
 
                 if (System.IO.File.Exists(fileName))
                 {
-                     ResXResourceReader rr = new ResXResourceReader(fileName);
+                    ResXResourceReader rr = new ResXResourceReader(fileName);
 
                     foreach (DictionaryEntry d in rr)
                         strings[str].Add(d.Key.ToString(), d.Value.ToString());
@@ -260,25 +260,125 @@ namespace GuestService.Resources
 				return AccountStrings.ResourceManager.GetString("Login_Social", AccountStrings.resourceCulture);
 			}
 		}
-		public static string LoginModel_C_ConfirmPassword
+        public static string LoginModel_L_Date
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_Date");
+            }
+        }
+
+        public static string LoginModel_L_AboutCompany
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_AboutCompany");
+            }
+        }
+
+        public static string LoginModel_L_Insurance
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_Insurance");
+            }
+        }
+
+        public static string LoginModel_L_Contact
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_Contact");
+            }
+        }
+
+        public static string LoginModel_L_Phone
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_Phone");
+            }
+        }
+        public static string LoginModel_L_Fax
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_Fax");
+            }
+        }
+        public static string LoginModel_L_Website
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_Website");
+            }
+        }
+        public static string LoginModel_C_ConfirmPassword
 		{
 			get
 			{
-				return AccountStrings.ResourceManager.GetString("LoginModel_C_ConfirmPassword", AccountStrings.resourceCulture);
+				return AccountStrings.Get("LoginModel_C_ConfirmPassword");
 			}
 		}
-		public static string LoginModel_L_Password
-		{
+
+        public static string LoginModel_L_CompanyName
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_CompanyName");
+            }
+        }
+
+        public static string LoginModel_L_Licenses
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_Licenses");
+            }
+        }
+        public static string LoginModel_L_Password
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_Password");
+            }
+        }
+
+        public static string LoginModel_L_CountryRegion
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_CountryRegion");
+            }
+        }
+        public static string LoginModel_R_Mail
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_R_Mail");
+            }
+        }
+        public static string LoginModel_L_Square
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_Square");
+            }
+        }
+        public static string LoginModel_L_Location
+        {
+            get
+            {
+                return AccountStrings.Get("LoginModel_L_Location");
+            }
+        }
+
+
+        public static string LoginModel_L_People
+        {
 			get
 			{
-				return AccountStrings.ResourceManager.GetString("LoginModel_L_Password", AccountStrings.resourceCulture);
-			}
-		}
-		public static string LoginModel_R_Mail
-		{
-			get
-			{
-				return AccountStrings.ResourceManager.GetString("LoginModel_R_Mail", AccountStrings.resourceCulture);
+				return AccountStrings.Get("LoginModel_L_People");
 			}
 		}
 		public static string LoginModel_R_Password

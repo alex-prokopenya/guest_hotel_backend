@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using GuestService.Models;
 
 namespace GuestService.Data
 {
@@ -164,7 +165,202 @@ namespace GuestService.Data
 				};
 			}
 		}
-		private static PartnerProvider.GuestFactory factory = new PartnerProvider.GuestFactory();
+
+        public static bool AddPartnersInfo(RegisterProviderModel info) {
+
+            try
+            {
+                #region Addexcursion
+                #region Insert query
+                var query = " INSERT INTO dbo.partner " +
+                            "    (parttype,     name,           lname,          town,           address,  " +
+                            "     rs,           rsv,            inn,            ndog,           ddog,     " +
+                            "     boss,         phprefix,       phones,         faxes,          email,    " +
+                            "     rate,         comment,        direction,      ident,          internet, " +
+                            "     market,       alias,          infocode,       acccode1,       acccode2, " + 
+                            "     acccode3,     skey,           www,            postaddress,    bankname, " +
+                            "     bankaddress,  usekickback,    iban,           debtstop,       reasondebtstop," +
+                            "     debtstopdate, author,         editor,         adate,          edate,      "+
+                            "     active,       language,       onlinedatebeg,  copyconf,       copynotconf," +
+                            "     sendmessage,  sendmessagemanual,lockclaimdays,  onlinecommision, copyconfauto, " +
+                            "     copywaiting,  organization ) "+
+                            "    VALUES ( "+
+                            "      0,          @name,           @name,          2,              @town,       " + 
+                            "      '',          '',             '',             '',             GETDATE(),   "   +
+                            "      '',          '',             @phones,        @faxes,         @email,      " +
+                            "      0,           @comment,       @direction,     0,              DEFAULT,     " +
+                            "      DEFAULT,     '',             DEFAULT,        DEFAULT,        DEFAULT,     "   +
+                            "      DEFAULT,     '',             @www,             '',             '',        " +
+                            "      '',          0,              '',             DEFAULT,        '' ,         "   +
+                            "      GETDATE(),   DEFAULT,        DEFAULT,        GETDATE(),      GETDATE(),   "   +
+                            "      DEFAULT,     1,              GETDATE(),      DEFAULT,        DEFAULT,     "   +
+                            "      DEFAULT,     DEFAULT,        0,              0,              DEFAULT,     "   +
+                            "      DEFAULT,     NULL); " +
+
+                            "       SELECT SCOPE_IDENTITY()";
+                #endregion
+
+                var comment = string.Format("dt:{0:yy-MM-dd}\nlc:{1}\ncp:{2}", info.DateEstablish, info.Licenses, info.Contact);
+                if (comment.Length > 128)
+                    comment = comment.Substring(0, 128);
+
+                var res = DatabaseOperationProvider.Query(query,
+                                                             "partners",
+                                                             new
+                                                             {
+                                                                name = info.CompanyName,
+                                                                town  = info.CountryRegion,
+                                                                 comment= comment,
+                                                                 direction = info.AboutCompany,
+                                                                 phones = info.Phone,
+                                                                 faxes = info.Fax,
+                                                                 email = info.UserName,
+                                                                 www = info.Website,
+                                                             });
+                #endregion
+
+                int newId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return true;
+        }
+
+        public static bool AddPartnersInfo(RegisterAgentWebModel info)
+        {
+            try
+            {
+                #region Addexcursion
+                #region Insert query
+                var query = " INSERT INTO dbo.partner " +
+                            "    (parttype,     name,           lname,          town,           address,  " +
+                            "     rs,           rsv,            inn,            ndog,           ddog,     " +
+                            "     boss,         phprefix,       phones,         faxes,          email,    " +
+                            "     rate,         comment,        direction,      ident,          internet, " +
+                            "     market,       alias,          infocode,       acccode1,       acccode2, " +
+                            "     acccode3,     skey,           www,            postaddress,    bankname, " +
+                            "     bankaddress,  usekickback,    iban,           debtstop,       reasondebtstop," +
+                            "     debtstopdate, author,         editor,         adate,          edate,      " +
+                            "     active,       language,       onlinedatebeg,  copyconf,       copynotconf," +
+                            "     sendmessage,  sendmessagemanual,lockclaimdays,  onlinecommision, copyconfauto, " +
+                            "     copywaiting,  organization ) " +
+                            "    VALUES ( " +
+                            "      0,          @name,           @name,          2,              @town,       " +
+                            "      '',          '',             '',             '',             GETDATE(),   " +
+                            "      '',          '',             @phones,        @faxes,         @email,      " +
+                            "      0,           @comment,       @direction,     0,              DEFAULT,     " +
+                            "      DEFAULT,     '',             DEFAULT,        DEFAULT,        DEFAULT,     " +
+                            "      DEFAULT,     '',             @www,             '',             '',        " +
+                            "      '',          0,              '',             DEFAULT,        '' ,         " +
+                            "      GETDATE(),   DEFAULT,        DEFAULT,        GETDATE(),      GETDATE(),   " +
+                            "      DEFAULT,     1,              GETDATE(),      DEFAULT,        DEFAULT,     " +
+                            "      DEFAULT,     DEFAULT,        0,              0,              DEFAULT,     " +
+                            "      DEFAULT,     NULL); " +
+
+                            "       SELECT SCOPE_IDENTITY()";
+                #endregion
+
+                var comment = string.Format("dt:{0:yy-MM-dd}\ncp:{1}", info.DateEstablish, info.Contact);
+                if (comment.Length > 128)
+                    comment = comment.Substring(0, 128);
+
+                var res = DatabaseOperationProvider.Query(query,
+                                                             "partners",
+                                                             new
+                                                             {
+                                                                 name = "ws: " +info.Website,
+                                                                 town = info.CountryRegion,
+                                                                 comment = comment,
+                                                                 direction = info.AboutCompany,
+                                                                 phones = info.Phone,
+                                                                 faxes = info.Fax,
+                                                                 email = info.UserName,
+                                                                 www = info.Website,
+                                                             });
+                #endregion
+
+                int newId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return true;
+        }
+
+        public static bool AddPartnersInfo(RegisterAgentTermModel info)
+        {
+
+            try
+            {
+                #region Addexcursion
+                #region Insert query
+                var query = " INSERT INTO dbo.partner " +
+                            "    (parttype,     name,           lname,          town,           address,  " +
+                            "     rs,           rsv,            inn,            ndog,           ddog,     " +
+                            "     boss,         phprefix,       phones,         faxes,          email,    " +
+                            "     rate,         comment,        direction,      ident,          internet, " +
+                            "     market,       alias,          infocode,       acccode1,       acccode2, " +
+                            "     acccode3,     skey,           www,            postaddress,    bankname, " +
+                            "     bankaddress,  usekickback,    iban,           debtstop,       reasondebtstop," +
+                            "     debtstopdate, author,         editor,         adate,          edate,      " +
+                            "     active,       language,       onlinedatebeg,  copyconf,       copynotconf," +
+                            "     sendmessage,  sendmessagemanual,lockclaimdays,  onlinecommision, copyconfauto, " +
+                            "     copywaiting,  organization ) " +
+                            "    VALUES ( " +
+                            "      0,          @name,           @name,          2,              @town,       " +
+                            "      '',          '',             '',             '',             GETDATE(),   " +
+                            "      '',          '',             @phones,        @faxes,         @email,      " +
+                            "      0,           @comment,       @direction,     0,              DEFAULT,     " +
+                            "      DEFAULT,     '',             DEFAULT,        DEFAULT,        DEFAULT,     " +
+                            "      DEFAULT,     '',             @www,             '',             '',        " +
+                            "      '',          0,              '',             DEFAULT,        '' ,         " +
+                            "      GETDATE(),   DEFAULT,        DEFAULT,        GETDATE(),      GETDATE(),   " +
+                            "      DEFAULT,     1,              GETDATE(),      DEFAULT,        DEFAULT,     " +
+                            "      DEFAULT,     DEFAULT,        0,              0,              DEFAULT,     " +
+                            "      DEFAULT,     NULL); " +
+
+                            "       SELECT SCOPE_IDENTITY()";
+                #endregion
+
+                var comment = string.Format("cp:{0}\ngl:{1}\narea:{2}\npp:", info.Contact, info.Location, info.Square,info.People);
+                if (comment.Length > 128)
+                    comment = comment.Substring(0, 128);
+
+                var res = DatabaseOperationProvider.Query(query,
+                                                             "partners",
+                                                             new
+                                                             {
+                                                                 name = info.CompanyName,
+                                                                 town = info.CountryRegion,
+                                                                 comment = comment,
+                                                                 direction = info.AboutCompany,
+                                                                 phones = info.Phone,
+                                                                 faxes = info.Fax,
+                                                                 email = info.UserName,
+                                                                 www = info.Website,
+                                                             });
+                #endregion
+
+                int newId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return true;
+        }
+
+
+        private static PartnerProvider.GuestFactory factory = new PartnerProvider.GuestFactory();
 		public static System.Collections.Generic.List<GuestClaim> GetLinkedClaims(string lang, int userId)
 		{
 			DataSet ds = DatabaseOperationProvider.QueryProcedure("up_guest_getLinkedClaims", "claims,hotelorders", new

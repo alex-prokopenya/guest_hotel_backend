@@ -316,7 +316,7 @@ namespace GuestService.Controllers.Api
 
                 var service = new SimpleEmailService();
 
-                service.SendEmail<GuestService.Data.AddExcursionData>(WebSecurity.CurrentUserName, "addexcursion", "en", exName);
+                service.SendEmail<GuestService.Data.AddExcursionData>(WebSecurity.CurrentUserName, "addexcursion", "en", exName, false, null);
                       
                 //      ),
                 //};

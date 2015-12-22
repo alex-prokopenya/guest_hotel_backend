@@ -156,6 +156,11 @@ namespace GuestService.Controllers.Api
       "                                                                    ); SELECT SCOPE_IDENTITY()";
                 #endregion
 
+                 var note = string.Format("{0}\ncom:{1}", (string.IsNullOrEmpty(data.exc_region_name) ? "" : "newReg:" + data.exc_region_name), data.exc_comis);
+
+                 if (note.Length > 255)
+                    note = note.Substring(0, 255);
+
                  var res = DatabaseOperationProvider.Query(   query, 
                                                               "excurs",
                                                               new
@@ -163,7 +168,7 @@ namespace GuestService.Controllers.Api
                                                                   exname = (!string.IsNullOrEmpty(data.ru_name) ? data.ru_name : data.en_name),
                                                                   lname = data.en_name,
                                                                   region = data.exc_region.Value,
-                                                                  note = (string.IsNullOrEmpty(data.exc_region_name)?"":"new region:" + data.exc_region_name + "\n"),
+                                                                  note = note,
                                                                   route = data.exc_en_route,
                                                                   partner = provider,
                                                                   excurstype = (data.exc_type.Value == 4) ? 3 : 2

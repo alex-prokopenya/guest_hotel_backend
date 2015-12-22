@@ -24,7 +24,7 @@ namespace GuestService.Models
             get;
             set;
         }
-
+        
         public string ru_name
         {
             get;
@@ -84,11 +84,12 @@ namespace GuestService.Models
             get;
             set;
         }
-        public string exc_price
+        public string exc_comis
         {
             get;
             set;
         }
+      
         public int? exc_region
         {
             get;

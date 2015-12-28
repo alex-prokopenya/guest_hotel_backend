@@ -317,7 +317,7 @@ namespace GuestService.Data
 				get;
 				set;
 			}
-			public static bool IsNodeEmpty(System.Collections.Generic.List<ExcursionProvider.EDSNode> list, ExcursionProvider.EDSNode node)
+			public static bool IsNodeEmpty(List<ExcursionProvider.EDSNode> list, ExcursionProvider.EDSNode node)
 			{
 				bool result;
 				if (node.section.paragraphs != null)
@@ -342,7 +342,7 @@ namespace GuestService.Data
 				return result;
 			}
 		}
-		private class CategoryGroupWithCategoriesComparer : System.Collections.Generic.IEqualityComparer<CategoryGroupWithCategories>
+		private class CategoryGroupWithCategoriesComparer : IEqualityComparer<CategoryGroupWithCategories>
 		{
 			public bool Equals(CategoryGroupWithCategories x, CategoryGroupWithCategories y)
 			{
@@ -377,10 +377,10 @@ namespace GuestService.Data
 					set;
 				}
 			}
-			private System.Collections.Generic.Dictionary<int, ExcursionProvider.CatalogFilterItemsCounterBuilder<T>.CatalogFilterCounterItem<T>> list;
+			private Dictionary<int, ExcursionProvider.CatalogFilterItemsCounterBuilder<T>.CatalogFilterCounterItem<T>> list;
 			public CatalogFilterItemsCounterBuilder()
 			{
-				this.list = new System.Collections.Generic.Dictionary<int, ExcursionProvider.CatalogFilterItemsCounterBuilder<T>.CatalogFilterCounterItem<T>>();
+				this.list = new Dictionary<int, ExcursionProvider.CatalogFilterItemsCounterBuilder<T>.CatalogFilterCounterItem<T>>();
 			}
 			public void Add(int id, T item)
 			{
@@ -398,7 +398,7 @@ namespace GuestService.Data
 					});
 				}
 			}
-			public System.Collections.Generic.List<ExcursionProvider.CatalogFilterItemsCounterBuilder<T>.CatalogFilterCounterItem<T>> ToList()
+			public List<ExcursionProvider.CatalogFilterItemsCounterBuilder<T>.CatalogFilterCounterItem<T>> ToList()
 			{
 				return (
 					from m in this.list
@@ -407,19 +407,19 @@ namespace GuestService.Data
 		}
 		public class LoadStatesResult
 		{
-			public System.Collections.Generic.Dictionary<int, int> Links
+			public Dictionary<int, int> Links
 			{
 				get;
 				private set;
 			}
-			public System.Collections.Generic.List<GeoArea> States
+			public List<GeoArea> States
 			{
 				get;
 				set;
 			}
 			public LoadStatesResult()
 			{
-				this.Links = new System.Collections.Generic.Dictionary<int, int>();
+				this.Links = new Dictionary<int, int>();
 			}
 		}
 		public enum ExcursionSorting
@@ -444,9 +444,9 @@ namespace GuestService.Data
 				select ExcursionProvider.factory.SearchGeography(row)).ToList<SearchGeography>();
 			return result;
 		}
-		public static System.Collections.Generic.List<CategoryWithGroup> GetCategories(string lang, int? startPoint)
+		public static List<CategoryWithGroup> GetCategories(string lang, int? startPoint)
 		{
-			System.Collections.Generic.List<CategoryWithGroup> result = new System.Collections.Generic.List<CategoryWithGroup>();
+			List<CategoryWithGroup> result = new List<CategoryWithGroup>();
 			DataSet ds = DatabaseOperationProvider.QueryProcedure("up_guest_getExcursionCategories", "categories", new
 			{
 				language = lang,
@@ -456,14 +456,14 @@ namespace GuestService.Data
 				from DataRow row in ds.Tables["categories"].Rows
 				select ExcursionProvider.factory.CategoryWithGroup(row)).ToList<CategoryWithGroup>();
 		}
-		public static System.Collections.Generic.List<CategoryGroupWithCategories> GetCategoriesByGroup(string lang, int? startPoint)
+		public static List<CategoryGroupWithCategories> GetCategoriesByGroup(string lang, int? startPoint)
 		{
 			DataSet ds = DatabaseOperationProvider.QueryProcedure("up_guest_getExcursionCategories", "categories", new
 			{
 				language = lang,
 				startpoint = startPoint
 			});
-			System.Collections.Generic.List<CategoryGroupWithCategories> result = (
+			List<CategoryGroupWithCategories> result = (
 				from DataRow row in ds.Tables["categories"].Rows
 				select ExcursionProvider.factory.CategoryGroupWithCategories(row)).Distinct(new ExcursionProvider.CategoryGroupWithCategoriesComparer()).ToList<CategoryGroupWithCategories>();
 			CategoryGroupWithCategories emptyGroup = result.FirstOrDefault((CategoryGroupWithCategories m) => m.group == null);
@@ -513,9 +513,97 @@ namespace GuestService.Data
 			return result;
 		}
 
+        public static List<CatalogExcursionMinPrice> FindAllExcursions(string lang, int partner, System.DateTime? startDate, System.DateTime? endDate, int? topLimit, int? startPoint, string searchText, int[] categories, int[] departures, int[] destinations, int[] languages, System.TimeSpan? minDuration, System.TimeSpan? maxDuration, ExcursionProvider.ExcursionSorting? sorting, bool withoutPrice)
+        {
+            System.DateTime _startDate = startDate.HasValue ? startDate.Value : System.DateTime.Now.Date;
+            System.DateTime _endDate = endDate.HasValue ? endDate.Value : _startDate.AddMonths(6);
+            XName arg_261_0 = "excursionFilters";
+            object[] array = new object[8];
+            array[0] = ((!topLimit.HasValue) ? null : new XAttribute("topLimit", topLimit.Value));
+            array[1] = ((searchText == null) ? null : new XElement("name", searchText));
+            object[] arg_D5_0 = array;
+            int arg_D5_1 = 2;
+            XElement arg_D5_2;
+            if (categories != null)
+            {
+                arg_D5_2 = new XElement("categories",
+                    from c in categories
+                    select new XElement("category", c));
+            }
+            else
+            {
+                arg_D5_2 = null;
+            }
+            arg_D5_0[arg_D5_1] = arg_D5_2;
+            object[] arg_115_0 = array;
+            int arg_115_1 = 3;
+            XElement arg_115_2;
+            if (departures != null)
+            {
+                arg_115_2 = new XElement("departurepoints",
+                    from d in departures
+                    select new XElement("departurepoint", d));
+            }
+            else
+            {
+                arg_115_2 = null;
+            }
+            arg_115_0[arg_115_1] = arg_115_2;
+            object[] arg_155_0 = array;
+            int arg_155_1 = 4;
+            XElement arg_155_2;
+            if (destinations != null)
+            {
+                arg_155_2 = new XElement("destinationpoints",
+                    from d in destinations
+                    select new XElement("destinationpoint", d));
+            }
+            else
+            {
+                arg_155_2 = null;
+            }
+            arg_155_0[arg_155_1] = arg_155_2;
+            object[] arg_195_0 = array;
+            int arg_195_1 = 5;
+            XElement arg_195_2;
+            if (languages != null)
+            {
+                arg_195_2 = new XElement("languages",
+                    from l in languages
+                    select new XElement("language", l));
+            }
+            else
+            {
+                arg_195_2 = null;
+            }
+            arg_195_0[arg_195_1] = arg_195_2;
+            array[6] = new XElement("duration", new object[]
+            {
+                (!minDuration.HasValue) ? null : new XAttribute("minDuration", new System.DateTime(1900, 1, 1).Add(minDuration.Value)),
+                (!maxDuration.HasValue) ? null : new XAttribute("maxDuration", new System.DateTime(1900, 1, 1).Add(maxDuration.Value))
+            });
+            array[7] = ((!sorting.HasValue) ? null : new XElement("sorting", sorting.ToString()));
+            XElement xml = new XElement(arg_261_0, array);
+            DataSet ds = DatabaseOperationProvider.QueryProcedure("up_guest_findAllExcursions", "excursions", new
+            {
+                language = lang,
+                partner = partner,
+                startpoint = startPoint,
+                startdate = _startDate,
+                enddate = _endDate,
+                filters = xml,
+                withpriceonly = !withoutPrice
+            });
+            return (
+                from DataRow row in ds.Tables["excursions"].Rows
+                select new CatalogExcursionMinPrice
+                {
+                    excursion = ExcursionProvider.factory.CatalogExcursion(row),
+                    minPrice = ExcursionProvider.factory.CatalogExcursionMinPrice(row)
+                }).ToList<CatalogExcursionMinPrice>();
+        }
 
-
-		public static System.Collections.Generic.List<CatalogExcursionMinPrice> FindExcursions(string lang, int partner, System.DateTime? startDate, System.DateTime? endDate, int? topLimit, int? startPoint, string searchText, int[] categories, int[] departures, int[] destinations, int[] languages, System.TimeSpan? minDuration, System.TimeSpan? maxDuration, ExcursionProvider.ExcursionSorting? sorting, bool withoutPrice)
+        public static List<CatalogExcursionMinPrice> FindExcursions(string lang, int partner, System.DateTime? startDate, System.DateTime? endDate, int? topLimit, int? startPoint, string searchText, int[] categories, int[] departures, int[] destinations, int[] languages, System.TimeSpan? minDuration, System.TimeSpan? maxDuration, ExcursionProvider.ExcursionSorting? sorting, bool withoutPrice)
 		{
 			System.DateTime _startDate = startDate.HasValue ? startDate.Value : System.DateTime.Now.Date;
 			System.DateTime _endDate = endDate.HasValue ? endDate.Value : _startDate.AddMonths(6);
@@ -605,7 +693,7 @@ namespace GuestService.Data
 				}).ToList<CatalogExcursionMinPrice>();
 		}
 
-        public static System.Collections.Generic.List<CatalogExcursionMinPrice> FindExcursions(string lang, int partner, System.DateTime? startDate, System.DateTime? endDate, int? topLimit, int? startPoint, string searchText, int[] categories, int[] departures, int[] destinations, int[] languages, System.TimeSpan? minDuration, System.TimeSpan? maxDuration, ExcursionProvider.ExcursionSorting? sorting)
+        public static List<CatalogExcursionMinPrice> FindExcursions(string lang, int partner, System.DateTime? startDate, System.DateTime? endDate, int? topLimit, int? startPoint, string searchText, int[] categories, int[] departures, int[] destinations, int[] languages, System.TimeSpan? minDuration, System.TimeSpan? maxDuration, ExcursionProvider.ExcursionSorting? sorting)
         {
             System.DateTime _startDate = startDate.HasValue ? startDate.Value : System.DateTime.Now.Date;
             System.DateTime _endDate = endDate.HasValue ? endDate.Value : _startDate.AddMonths(6);
@@ -699,7 +787,6 @@ namespace GuestService.Data
             return excs;
         }
 
-
         public static Image GetCatalogImage(int id, int index)
 		{
 			DataSet ds = DatabaseOperationProvider.QueryProcedure("up_guest_getCatalogImage", "image", new
@@ -719,7 +806,7 @@ namespace GuestService.Data
 			}
 			return result;
 		}
-		public static System.Collections.Generic.List<ExcursionPrice> GetPrice(string lang, int partner, int excursionId, System.DateTime date, int? startPoint)
+		public static List<ExcursionPrice> GetPrice(string lang, int partner, int excursionId, System.DateTime date, int? startPoint)
 		{
 			DataSet ds = DatabaseOperationProvider.QueryProcedure("up_guest_getExcursionPrice", "prices", new
 			{
@@ -733,7 +820,7 @@ namespace GuestService.Data
 				from DataRow row in ds.Tables["prices"].Rows
 				select ExcursionProvider.factory.ExcursionPrice(row, date)).ToList<ExcursionPrice>();
 		}
-		public static System.Collections.Generic.List<ExcursionDate> GetDates(int partner, int excursionId, System.DateTime dateFrom, System.DateTime dateTill)
+		public static List<ExcursionDate> GetDates(int partner, int excursionId, System.DateTime dateFrom, System.DateTime dateTill)
 		{
 			DataSet ds = DatabaseOperationProvider.QueryProcedure("up_guest_GetExcursionDates", "dates", new
 			{
@@ -746,7 +833,7 @@ namespace GuestService.Data
 				from DataRow row in ds.Tables["dates"].Rows
 				select ExcursionProvider.factory.ExcursionDate(row)).ToList<ExcursionDate>();
 		}
-		public static System.Collections.Generic.List<ExcursionDescription> GetDescription(string lang, int[] excursions)
+		public static List<ExcursionDescription> GetDescription(string lang, int[] excursions)
 		{
 			if (excursions == null)
 			{
@@ -761,7 +848,7 @@ namespace GuestService.Data
 				excursions = xml,
 				loaddescription = true
 			});
-			System.Collections.Generic.IEnumerable<ExcursionPicture> pictures = 
+			IEnumerable<ExcursionPicture> pictures = 
 				from DataRow row in ds.Tables["pictures"].Rows
 				select ExcursionProvider.factory.ExcursionPicture(row);
 			return ds.Tables["excursions"].Rows.Cast<DataRow>().Select(delegate(DataRow row)
@@ -772,7 +859,7 @@ namespace GuestService.Data
 					from p in pictures
 					where p.ex == description.excursion.id
 					select p).ToList<ExcursionPicture>();
-				System.Collections.Generic.List<ExcursionProvider.EDSNode> tree = (
+				List<ExcursionProvider.EDSNode> tree = (
 					from DataRow r in ds.Tables["dtree"].Rows
 					select new ExcursionProvider.EDSNode
 					{
@@ -795,12 +882,12 @@ namespace GuestService.Data
 					{
 						if (ctree.section.paragraphs == null)
 						{
-							ctree.section.paragraphs = new System.Collections.Generic.List<string>();
+							ctree.section.paragraphs = new List<string>();
 						}
 						ctree.section.paragraphs.Add(paragraphRow.ReadNullableTrimmedString((!paragraphRow.IsNull("descriptionlang")) ? "descriptionlang" : "description"));
 					}
 				}
-				description.description = new System.Collections.Generic.List<ExcursionDescriptionSection>();
+				description.description = new List<ExcursionDescriptionSection>();
 				foreach (ExcursionProvider.EDSNode tnode in tree)
 				{
 					if (!ExcursionProvider.EDSNode.IsNodeEmpty(tree, tnode))
@@ -816,7 +903,7 @@ namespace GuestService.Data
 							{
 								if (pnode.section.sections == null)
 								{
-									pnode.section.sections = new System.Collections.Generic.List<ExcursionDescriptionSection>();
+									pnode.section.sections = new List<ExcursionDescriptionSection>();
 								}
 								pnode.section.sections.Add(tnode.section);
 							}
@@ -826,7 +913,7 @@ namespace GuestService.Data
 				return description;
 			}).ToList<ExcursionDescription>();
 		}
-		public static System.Collections.Generic.List<CatalogFilterCategoryGroup> BuildFilterCategories(System.Collections.Generic.List<CatalogExcursionMinPrice> catalog, int[] marks)
+		public static List<CatalogFilterCategoryGroup> BuildFilterCategories(List<CatalogExcursionMinPrice> catalog, int[] marks)
 		{
 			ExcursionProvider.CatalogFilterItemsCounterBuilder<ExcursionCategory> builder = new ExcursionProvider.CatalogFilterItemsCounterBuilder<ExcursionCategory>();
 			if (catalog != null)
@@ -863,7 +950,7 @@ namespace GuestService.Data
 				orderby (m.name == null) ? 0 : 1, m.name
 				select m).ToList<CatalogFilterCategoryGroup>();
 		}
-		public static System.Collections.Generic.List<CatalogFilterLocationItem> BuildFilterDepartures(System.Collections.Generic.List<CatalogExcursionMinPrice> catalog, int[] marks)
+		public static List<CatalogFilterLocationItem> BuildFilterDepartures(List<CatalogExcursionMinPrice> catalog, int[] marks)
 		{
 			ExcursionProvider.CatalogFilterItemsCounterBuilder<GeoArea> builder = new ExcursionProvider.CatalogFilterItemsCounterBuilder<GeoArea>();
 			if (catalog != null)
@@ -891,9 +978,9 @@ namespace GuestService.Data
 				orderby m.name
 				select m).ToList<CatalogFilterLocationItem>();
 		}
-		public static System.Collections.Generic.List<GeoArea> BuildDepartureList(System.Collections.Generic.List<CatalogExcursionMinPrice> catalog)
+		public static List<GeoArea> BuildDepartureList(List<CatalogExcursionMinPrice> catalog)
 		{
-			System.Collections.Generic.Dictionary<int, GeoArea> departures = new System.Collections.Generic.Dictionary<int, GeoArea>();
+			Dictionary<int, GeoArea> departures = new Dictionary<int, GeoArea>();
 			if (catalog != null)
 			{
 				foreach (CatalogExcursionMinPrice item in catalog)
@@ -916,7 +1003,7 @@ namespace GuestService.Data
 				orderby m.name
 				select m).ToList<GeoArea>();
 		}
-		public static System.Collections.Generic.List<CatalogFilterLocationItem> BuildFilterDestinations(System.Collections.Generic.List<CatalogExcursionMinPrice> catalog, int[] marks)
+		public static List<CatalogFilterLocationItem> BuildFilterDestinations(List<CatalogExcursionMinPrice> catalog, int[] marks)
 		{
 			ExcursionProvider.CatalogFilterItemsCounterBuilder<GeoArea> builder = new ExcursionProvider.CatalogFilterItemsCounterBuilder<GeoArea>();
 			if (catalog != null)
@@ -944,7 +1031,7 @@ namespace GuestService.Data
 				orderby m.name
 				select m).ToList<CatalogFilterLocationItem>();
 		}
-		public static System.Collections.Generic.List<CatalogFilterItem> BuildFilterLanguages(System.Collections.Generic.List<CatalogExcursionMinPrice> catalog, int[] marks)
+		public static List<CatalogFilterItem> BuildFilterLanguages(List<CatalogExcursionMinPrice> catalog, int[] marks)
 		{
 			ExcursionProvider.CatalogFilterItemsCounterBuilder<Language> builder = new ExcursionProvider.CatalogFilterItemsCounterBuilder<Language>();
 			if (catalog != null)
@@ -971,7 +1058,7 @@ namespace GuestService.Data
 				orderby m.name
 				select m).ToList<CatalogFilterItem>();
 		}
-		public static CatalogFilterDuration BuildFilterDurations(System.Collections.Generic.List<CatalogExcursionMinPrice> catalog)
+		public static CatalogFilterDuration BuildFilterDurations(List<CatalogExcursionMinPrice> catalog)
 		{
 			System.TimeSpan? min = null;
 			System.TimeSpan? max = null;
@@ -1022,7 +1109,7 @@ namespace GuestService.Data
 				select ExcursionProvider.factory.StatePoint(row)).ToList<GeoArea>();
 			return result;
 		}
-		public static System.Collections.Generic.List<CatalogFilterCategoryGroup> BuildDescriptionCategories(CatalogExcursion catalog)
+		public static List<CatalogFilterCategoryGroup> BuildDescriptionCategories(CatalogExcursion catalog)
 		{
 			ExcursionProvider.CatalogFilterItemsCounterBuilder<ExcursionCategory> builder = new ExcursionProvider.CatalogFilterItemsCounterBuilder<ExcursionCategory>();
 			if (catalog != null && catalog.categories != null)
@@ -1053,7 +1140,7 @@ namespace GuestService.Data
 				orderby (m.name == null) ? 0 : 1, m.name
 				select m).ToList<CatalogFilterCategoryGroup>();
 		}
-		public static System.Collections.Generic.List<ExcursionPickupHotel> GetExcursionPickupHotels(string lang, int excursion, int? excursionTime, int[] departurePoints)
+		public static List<ExcursionPickupHotel> GetExcursionPickupHotels(string lang, int excursion, int? excursionTime, int[] departurePoints)
 		{
 			string depaturepoints = (departurePoints != null && departurePoints.Length > 0) ? string.Join<int>(",", departurePoints) : null;
 			DataSet ds = DatabaseOperationProvider.QueryProcedure("up_guest_getExcursionHotelPickup", "hotels", new
@@ -1067,5 +1154,151 @@ namespace GuestService.Data
 				from DataRow row in ds.Tables["hotels"].Rows
 				select ExcursionProvider.factory.ExcursionPickupHotel(row)).ToList<ExcursionPickupHotel>();
 		}
-	}
+
+
+        public static void GetExcursionTexts(int id,
+                                             out KeyValuePair<int, string>[] names,
+                                             out string route,
+                                             out int[] types,
+                                             out int region,
+                                             out KeyValuePair<int, string>[] descriptions
+                                        )
+        {
+            names = new KeyValuePair<int, string>[2];
+            var tempTypes = new List<int>();
+            var tempDescriptions = new List<KeyValuePair<int, string>>();
+
+            //определить, из какой таблицы брать описание
+
+            //ищем данные в основной и временной таблицах
+            var query = "       select inc, name, lname, route, region, edate from excurs      where inc = " + id +
+                        " union select inc, name, lname, route, region, edate from excurs_temp where excurs_id = " + id;
+
+            var res = DatabaseOperationProvider.Query(query, "excurs", new { });
+
+            //по умолчанию берем данные из основной
+            var row = res.Tables[0].Rows[0];
+            string tablesPostfix = "";
+
+            //если есть информация и о временной таблице
+            if (res.Tables[0].Rows.Count > 1)
+            { 
+                DateTime editDateOriginal   = row.ReadDateTime("edate");
+                DateTime editDateCopy       = res.Tables[0].Rows[1].ReadDateTime("edate");
+
+                //сравниваем даты изменения
+                if (editDateCopy > editDateOriginal)
+                {
+                    //если во временной таблице более актуальная версия, берем информацию из нее
+                    row = res.Tables[0].Rows[1];
+                    tablesPostfix = "_temp";
+                }
+            }
+
+            //читаем имя
+            names[0] = new KeyValuePair<int, string>(2, row.ReadNullableString("name"));
+            names[1] = new KeyValuePair<int, string>(1, row.ReadNullableString("lname"));
+
+            //маршрут и регион
+            route  = row.ReadNullableString("route");
+            region = row.ReadInt("region");
+
+            var exId = row.ReadInt("inc"); // айдишник оригинальной экскурсии или временной копии, зависит от даты послених изменений
+
+            #region тип экскурсии
+            //читаем типы
+            query = "select excurscategory from excatlist" + tablesPostfix + " where excurs = " + exId;
+
+            res = DatabaseOperationProvider.Query(query, "categories", new { });
+
+            foreach (DataRow catItem in res.Tables[0].Rows)
+                tempTypes.Add(catItem.ReadInt("excurscategory"));
+
+            types = tempTypes.ToArray();
+            #endregion
+
+            #region описание экскурсии
+            //читаем типы
+            query = "select  2 as lang, a.description from exdsc" + tablesPostfix + " as a where a.excurs = " + exId +
+             " union select  b.lang, b.description from exdsclang" + tablesPostfix + " as b where (select inc from exdsc" + tablesPostfix + " where excurs = "+ exId + " ) = b.exdsc";
+
+            res = DatabaseOperationProvider.Query(query, "descriptions", new { });
+
+            foreach (DataRow descItem in res.Tables[0].Rows)
+                tempDescriptions.Add(new KeyValuePair<int, string>(descItem.ReadInt("lang"), descItem.ReadNullableString("description")));
+
+            descriptions = tempDescriptions.ToArray();
+            #endregion
+        }
+
+        public static KeyValuePair<int, bool>[] GetExcursionOldPhotos(int id)
+        {
+            var result = new List<KeyValuePair<int, bool>>();
+
+            var query = "        select inc, 1 as main from excurspicture where excurs = " + id +
+                         " union select inc, 0 as main from excurspicture_temp where excurs = (select inc from excurs_temp where excurs_id = " +id+ ") ";
+
+            var res = DatabaseOperationProvider.Query(query, "categories", new { });
+
+            foreach (DataRow photoItem in res.Tables[0].Rows)
+                result.Add( new KeyValuePair<int, bool>(photoItem.ReadInt("inc"), photoItem.ReadInt("main") == 1));
+
+            return result.ToArray();
+        }
+
+        public static KeyValuePair<int, string>[] GetExcursionOldPrices(int id)
+        {
+            var result = new List<KeyValuePair<int, string>>();
+
+            var query = "       select inc, datebeg, dateend, adult, child, inf, total from exprice where excurs  = " + id;
+
+            var res = DatabaseOperationProvider.Query(query, "categories", new { });
+
+            foreach (DataRow priceItem in res.Tables[0].Rows)
+            {
+                var priceInfo = priceItem.ReadDecimal("total") > 0 
+                                    ?
+                                    string.Format("from {0:mm-dd-yy} till {1:mm-dd-yy} total {2}", new object[] {
+                                        priceItem.ReadDateTime("datebeg"),
+                                        priceItem.ReadDateTime("dateend"),
+                                        priceItem.ReadDateTime("total")
+                                    }) 
+                                    :
+                                    string.Format("from {0:mm-dd-yy} till {1:mm-dd-yy} adl {2}, chd {3}, inf {4}", new object[] {
+                                        priceItem.ReadDateTime("datebeg"),
+                                        priceItem.ReadDateTime("dateend"),
+                                        priceItem.ReadDateTime("adult"),
+                                        priceItem.ReadDateTime("child"),
+                                        priceItem.ReadDateTime("inf")
+                                    }) ;
+
+                result.Add(new KeyValuePair<int, string>(priceItem.ReadInt("inc"), priceInfo));
+            }
+
+            return result.ToArray();
+        }
+
+        public static void DeleteOldPhoto(int id, bool isMain, int providerId)
+        {
+            //проверить, принадлежит ли экскурсия пользователю
+            //удалить фото
+
+            var table_postfix = isMain ? "" : "_temp";
+
+            var query = "delete from excurspicture"+ table_postfix + " where inc = @pictId and excurs in (select inc from excurs where patner = @partner)";
+
+            var res = DatabaseOperationProvider.Query(query, "partners", new { pictId = id, partner = providerId });
+        }
+
+        public static void DeleteOldPrice(int id, int providerId)
+        {
+            //проверить, принадлежит ли экскурсия пользователю
+            //удалить цену
+
+            var query = "delete from exprice where inc = @priceId and excurs in (select inc from excurs where patner = @partner)";
+
+            var res = DatabaseOperationProvider.Query(query, "partners", new { priceId = id, partner = providerId });
+
+        }
+    }
 }

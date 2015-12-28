@@ -69,7 +69,13 @@ namespace GuestService.Resources
             if (strings[str].ContainsKey(key))
                 return strings[str][key];
 
-            return ExcursionStrings.ResourceManager.GetString(key, ExcursionStrings.resourceCulture);
+            
+            var res = ExcursionStrings.ResourceManager.GetString(key, ExcursionStrings.resourceCulture);
+
+            if (string.IsNullOrEmpty(res))
+                return "not found " + key;
+            else
+                return res;
         }
 
         public static string BookButton

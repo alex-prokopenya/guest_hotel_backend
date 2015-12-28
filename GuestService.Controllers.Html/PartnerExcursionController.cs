@@ -12,7 +12,6 @@ using Sm.System.Mvc;
 using Sm.System.Database;
 using System.Data;
 using System;
-using WebMatrix.WebData;
 using System.Net.Http;
 namespace GuestService.Controllers.Html
 {
@@ -446,6 +445,93 @@ namespace GuestService.Controllers.Html
                     }
                 }
             }
+            return base.View(context);
+        }
+
+        [AllowAnonymous, HttpGet, ActionName("editlist")]
+        public ActionResult EditList(ExcursionIndexWebParam param)
+        {
+            if (!WebSecurity.IsAuthenticated)
+            {
+                string str = base.Url.RouteUrl(base.Request.QueryStringAsRouteValues());
+                return base.RedirectToAction("login", "account", new { returnUrl = str });
+            }
+            int userId = WebSecurity.CurrentUserId;
+            string userName = WebSecurity.CurrentUserName;
+
+            if (param != null && param.visualtheme != null)
+            {
+                new VisualThemeManager(this).SafeSetThemeName(param.visualtheme);
+            }
+            ExcursionIndexContext context = new ExcursionIndexContext();
+            context.PartnerAlias = ((param.PartnerAlias != null) ? param.PartnerAlias : Settings.ExcursionDefaultPartnerAlias);
+            if (string.IsNullOrEmpty(context.PartnerAlias))
+            {
+                throw new System.ArgumentException("partner alias is not specified");
+            }
+            context.StartPointAlias = param.StartPointAlias;
+            context.ExcursionDate = System.DateTime.Today.Date.AddDays((double)Settings.ExcursionDefaultDate);
+
+            if (param.ShowCommand != null)
+            {
+                context.NavigateState = new ExcursionIndexNavigateCommand();
+                if (param.ShowCommand.ToLower() == "search")
+                {
+                    if (param.SearchText != null || param.Categories != null || param.Destinations != null || param.ExcursionLanguages != null)
+                    {
+                        context.NavigateState.Cmd = "search";
+                        context.NavigateState.Options = new ExcursionIndexNavigateOptions
+                        {
+                            text = param.SearchText,
+                            categories = param.Categories,
+                            destinations = param.Destinations,
+                            languages = param.ExcursionLanguages
+                        };
+                    }
+                }
+                else
+                {
+                    if (param.ShowCommand.ToLower() == "description")
+                    {
+                        if (param.Excursion.HasValue)
+                        {
+                            context.NavigateState.Cmd = "description";
+                            context.NavigateState.Options = new ExcursionIndexNavigateOptions
+                            {
+                                excursion = param.Excursion
+                            };
+                        }
+                    }
+                }
+            }
+            return base.View(context);
+        }
+
+        [AllowAnonymous, HttpGet, ActionName("editexcursion")]
+        public ActionResult EditExcursion(ExcursionIndexWebParam param, int? id)
+        {
+            //TODO !! выводить все экскурсии, в том числе без цен и неактивные
+            if (!WebSecurity.IsAuthenticated)
+            {
+                string str = base.Url.RouteUrl(base.Request.QueryStringAsRouteValues());
+                return base.RedirectToAction("login", "account", new { returnUrl = str });
+            }
+
+            EditExcursionContext context = new EditExcursionContext();
+
+            context.Regions = PartnerProvider.GetPartnerRegions(Api.PartnerExcursionController.GetProviderId(WebSecurity.CurrentUserId));
+            context.Languages = PartnerProvider.GetPartnerLangs();
+
+            ExcursionProvider.GetExcursionTexts(id.Value,
+                                                out context.Names, 
+                                                out context.Route, 
+                                                out context.Types,
+                                                out context.Region,
+                                                out context.Descriptions);
+
+            context.OldPhotos = ExcursionProvider.GetExcursionOldPhotos(id.Value);
+            context.OldPrices = ExcursionProvider.GetExcursionOldPrices(id.Value);
+
             return base.View(context);
         }
 

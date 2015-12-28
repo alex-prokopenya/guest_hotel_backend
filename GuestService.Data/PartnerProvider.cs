@@ -359,7 +359,6 @@ namespace GuestService.Data
             return true;
         }
 
-
         private static PartnerProvider.GuestFactory factory = new PartnerProvider.GuestFactory();
 		public static System.Collections.Generic.List<GuestClaim> GetLinkedClaims(string lang, int userId)
 		{

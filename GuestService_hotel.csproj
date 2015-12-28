@@ -326,6 +326,7 @@
     <Compile Include="GuestService.Models.Guest\SummaryContext.cs" />
     <Compile Include="GuestService.Models.Guest\UnlinkOrderModel.cs" />
     <Compile Include="GuestService.Models.Guide\HotelGuideParam.cs" />
+    <Compile Include="GuestService.Models.Partner\EditExcursionContext.cs" />
     <Compile Include="GuestService.Models.Partner\AddExcursionContext.cs" />
     <Compile Include="GuestService.Models.Partner\PartnerBalanceContext.cs" />
     <Compile Include="GuestService.Models.Partner\PartnerContext.cs" />
@@ -340,6 +341,7 @@
     <Compile Include="GuestService.Models.Payment\ProcessingResultModel.cs" />
     <Compile Include="GuestService.Models.Welcome\GuestInfoContext.cs" />
     <Compile Include="GuestService.Models.Welcome\WelcomeParam.cs" />
+    <Compile Include="GuestService.Models\UpdateExcursion.cs" />
     <Compile Include="GuestService.Models\AddExcursion.cs" />
     <Compile Include="GuestService.Models\BaseApiParam.cs" />
     <Compile Include="GuestService.Models\ExternalLogin.cs" />

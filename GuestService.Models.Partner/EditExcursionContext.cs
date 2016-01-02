@@ -7,6 +7,12 @@ namespace GuestService.Models.Partner
 {
     public class EditExcursionContext
     {
+        //айдишник оригинальной экскурсии
+        public int ExcursionId;
+
+        //айдишник копии экскурсии
+        public int CopyExcursionId;
+
         public KeyValuePair<string, string>[] Regions;
 
         public KeyValuePair<string, string>[] Languages;
@@ -21,7 +27,7 @@ namespace GuestService.Models.Partner
 
         public int Region; //+
 
-        public KeyValuePair<int, string>[] OldPrices; //+
+        public KeyValuePair<int, PriceInfo>[] OldPrices; //+
 
         public KeyValuePair<int, bool>[] OldPhotos;//+
     }

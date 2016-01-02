@@ -522,15 +522,18 @@ namespace GuestService.Controllers.Html
             context.Regions = PartnerProvider.GetPartnerRegions(Api.PartnerExcursionController.GetProviderId(WebSecurity.CurrentUserId));
             context.Languages = PartnerProvider.GetPartnerLangs();
 
+            context.ExcursionId = id.Value;
+
             ExcursionProvider.GetExcursionTexts(id.Value,
                                                 out context.Names, 
                                                 out context.Route, 
                                                 out context.Types,
                                                 out context.Region,
-                                                out context.Descriptions);
+                                                out context.Descriptions,
+                                                out context.CopyExcursionId);
 
             context.OldPhotos = ExcursionProvider.GetExcursionOldPhotos(id.Value);
-            context.OldPrices = ExcursionProvider.GetExcursionOldPrices(id.Value);
+            context.OldPrices = ExcursionProvider.GetExcursionOldPrices(id.Value, context.Languages);
 
             return base.View(context);
         }

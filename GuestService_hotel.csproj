@@ -293,6 +293,7 @@
     <Compile Include="GuestService.Models.Catalog\GeoCatalogParam.cs" />
     <Compile Include="GuestService.Models.Catalog\GeoPointByAliasParam.cs" />
     <Compile Include="GuestService.Models.Context\GuideHotelDutiesContext.cs" />
+    <Compile Include="GuestService.Models.Excursion\EditImageParam.cs" />
     <Compile Include="GuestService.Models.Excursion\CatalogImageParam.cs" />
     <Compile Include="GuestService.Models.Excursion\CatalogParam.cs" />
     <Compile Include="GuestService.Models.Excursion\CategoryParam.cs" />
@@ -326,6 +327,7 @@
     <Compile Include="GuestService.Models.Guest\SummaryContext.cs" />
     <Compile Include="GuestService.Models.Guest\UnlinkOrderModel.cs" />
     <Compile Include="GuestService.Models.Guide\HotelGuideParam.cs" />
+    <Compile Include="GuestService.Models.Partner\PriceInfo.cs" />
     <Compile Include="GuestService.Models.Partner\EditExcursionContext.cs" />
     <Compile Include="GuestService.Models.Partner\AddExcursionContext.cs" />
     <Compile Include="GuestService.Models.Partner\PartnerBalanceContext.cs" />

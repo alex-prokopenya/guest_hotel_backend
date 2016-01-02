@@ -242,6 +242,7 @@ namespace GuestService.Controllers.Api
 			}
 			return result;
 		}
+
 		[ActionName("filterdetails"), HttpGet]
 		public FilterDetailsResult FilterDetails([FromUri] FiltersParam param)
 		{
@@ -256,7 +257,118 @@ namespace GuestService.Controllers.Api
 			}
 			return ExcursionController.GetCachedFilterDetails(param, partner);
 		}
-		[ActionName("catalogimage"), HttpGet]
+
+        [ActionName("editimage"), HttpGet]
+        public HttpResponseMessage EditImage(int id, [FromUri] EditImageParam param)
+        {
+            if (param == null)
+            {
+                throw new System.ArgumentNullException("param");
+            }
+            HttpResponseMessage response = new HttpResponseMessage();
+            string imageCacheKey = string.Format("editImage[id:{0}][w:{1}][h:{2}][main:{3}][m:{4}][d:{5}]", new object[]
+            {
+                id,
+                param.h,
+                param.w,
+                param.i,
+                param.Mode,
+                param.ShowDefault ?? true
+            });
+            ImageCacheItem cacheResult = HttpContext.Current.Cache[imageCacheKey] as ImageCacheItem;
+            if (cacheResult == null || Settings.IsCacheDisabled)
+            {
+                Image image = ExcursionProvider.GetEditImage(id, param.i > 0);
+                if (image == null && param.ShowDefault == false)
+                {
+                    response.StatusCode = HttpStatusCode.NotFound;
+                }
+                else
+                {
+                    ImageFormatter formatter = new ImageFormatter(image, Properties.Resources._78777);
+                    formatter.Format = ((image != null) ? ImageFormat.Jpeg : ImageFormat.Png);
+                    param.ApplyFormat(formatter);
+                    System.IO.Stream stream = formatter.CreateStream();
+                    if (stream != null)
+                    {
+                        cacheResult = ImageCacheItem.Create(stream, formatter.MediaType);
+                        HttpContext.Current.Cache.Add(imageCacheKey, cacheResult, null, System.DateTime.Now.AddMinutes(10.0), Cache.NoSlidingExpiration, CacheItemPriority.Normal, null);
+                        response.Content = new StreamContent(stream);
+                        response.Content.Headers.ContentType = new MediaTypeHeaderValue(formatter.MediaType);
+                    }
+                    else
+                    {
+                        response.StatusCode = HttpStatusCode.NotFound;
+                    }
+                }
+            }
+            else
+            {
+                response.Content = new StreamContent(cacheResult.CraeteStream());
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue(cacheResult.MediaType);
+            }
+            response.Headers.CacheControl = new CacheControlHeaderValue();
+            response.Headers.CacheControl.Public = true;
+            response.Headers.CacheControl.MaxAge = new System.TimeSpan?(System.TimeSpan.FromHours(1.0));
+            return response;
+        }
+
+        [ActionName("catalogimage2"), HttpGet]
+        public HttpResponseMessage CatalogImage2(int id, [FromUri] EditImageParam param)
+        {
+            if (param == null)
+            {
+                throw new System.ArgumentNullException("param");
+            }
+            HttpResponseMessage response = new HttpResponseMessage();
+            string imageCacheKey = string.Format("catalogImage[id:{0}][w:{1}][h:{2}][i:{3}][m:{4}][d:{5}]", new object[]
+            {
+                id,
+                param.h,
+                param.w,
+                param.i,
+                param.Mode,
+                param.ShowDefault ?? true
+            });
+            ImageCacheItem cacheResult = HttpContext.Current.Cache[imageCacheKey] as ImageCacheItem;
+            if (cacheResult == null || Settings.IsCacheDisabled)
+            {
+                Image image = ExcursionProvider.GetCatalogImage(id, param.Index);
+                if (image == null && param.ShowDefault == false)
+                {
+                    response.StatusCode = HttpStatusCode.NotFound;
+                }
+                else
+                {
+                    ImageFormatter formatter = new ImageFormatter(image, Properties.Resources._78777);
+                    formatter.Format = ((image != null) ? ImageFormat.Jpeg : ImageFormat.Png);
+                    param.ApplyFormat(formatter);
+                    System.IO.Stream stream = formatter.CreateStream();
+                    if (stream != null)
+                    {
+                        cacheResult = ImageCacheItem.Create(stream, formatter.MediaType);
+                        HttpContext.Current.Cache.Add(imageCacheKey, cacheResult, null, System.DateTime.Now.AddMinutes(10.0), Cache.NoSlidingExpiration, CacheItemPriority.Normal, null);
+                        response.Content = new StreamContent(stream);
+                        response.Content.Headers.ContentType = new MediaTypeHeaderValue(formatter.MediaType);
+                    }
+                    else
+                    {
+                        response.StatusCode = HttpStatusCode.NotFound;
+                    }
+                }
+            }
+            else
+            {
+                response.Content = new StreamContent(cacheResult.CraeteStream());
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue(cacheResult.MediaType);
+            }
+            response.Headers.CacheControl = new CacheControlHeaderValue();
+            response.Headers.CacheControl.Public = true;
+            response.Headers.CacheControl.MaxAge = new System.TimeSpan?(System.TimeSpan.FromHours(1.0));
+            return response;
+        }
+
+        [ActionName("catalogimage"), HttpGet]
 		public HttpResponseMessage CatalogImage(int id, [FromUri] CatalogImageParam param)
 		{
 			if (param == null)
@@ -310,6 +422,8 @@ namespace GuestService.Controllers.Api
 			response.Headers.CacheControl.MaxAge = new System.TimeSpan?(System.TimeSpan.FromHours(1.0));
 			return response;
 		}
+
+
 		[ActionName("price"), HttpGet]
 		public ExcursionPriceList Price(int id, [FromUri] PriceParam param)
 		{

@@ -329,154 +329,219 @@ namespace GuestService.Controllers.Api
             return 0;
         }
         
-        private static int UpdateExcursion(UpdateExcursion data, int provider)
+        private static int UpdateExcursion(UpdateExcursion data, int provider, Dictionary<string,string> langs)
         {
             try
             {
-                #region Addexcursion
-                #region Insert query
-                var query = " INSERT INTO dbo.excurs( " +
-      "                                                                       name " +
-      "                                                                    , lname " +
-      "                                                                     , duration " +
-      "                                                                     , region " +
-      "                                                                     , horder " +
-      "                                                                     , distance " +
-      "                                                                     , maxinfage " +
-      "                                                                     , maxchildage " +
-      "                                                                     , note " +
-      "                                                                     , freeexcurs" +
-      "                                                                     , voucher" +
-      "                                                                     , roomnum" +
-      "                                                                     , people" +
-      "                                                                     , _individual" +
-      "                                                                     , route" +
-      "                                                                     , skey" +
-      "                                                                     , excurstype" +
-      "                                                                     , partner" +
-      "                                                                     , _withoutplan" +
-      "                                                                     , author" +
-      "                                                                     , editor" +
-      "                                                                     , adate" +
-      "                                                                     , edate" +
-      "                                                                     , _periodonly" +
-      "                                                                     , _datebeg" +
-      "                                                                     , _dateend" +
-      "                                                                     , _exdays" +
-      "                                                                     , reserv" +
-      "                                                                     , stopsale" +
-      "                                                                     , url" +
-      "                                                                     , vouchernote" +
-      "                                                                     , active" +
-      "                                                                     , lasting" +
-      "                                                                     , area" +
-      "                                                                     , logoid" +
-      "                                                                     , _agerequired" +
-      "                                                                     , reqparams )" +
+                //общая часть
+                //обновить цены в живой базе
+                //обновить расписания
+                InsertLifePrices(data);
 
-      "                                                           VALUES   ( @exname -- name - varchar(64) \n" +
-      "                                                                     , @lname -- lname - varchar(64) \n" +
-      "                                                                     , ''-- duration - varchar(64)\n" +
-      "                                                                     , @region -- region - int\n" +
-      "                                                                     , 0-- horder - bit\n" +
-      "                                                                     , 0-- distance - money\n" +
-      "                                                                     , 0-- maxinfage - int\n" +
-      "                                                                     , 0-- maxchildage - int\n" +
-      "                                                                     , @note -- note - varchar(255)\n" +
-      "                                                                     , DEFAULT-- freeexcurs - bit NOT NULL\n" +
-      "                                                                     , DEFAULT-- voucher - bit NOT NULL\n" +
-      "                                                                     , DEFAULT-- roomnum - bit NOT NULL\n" +
-      "                                                                     , DEFAULT-- people - bit NOT NULL\n" +
-      "                                                                     , DEFAULT-- _individual - bit NOT NULL\n" +
-      "                                                                     , @route -- route - varchar(255)\n" +
-      "                                                                     , ''-- skey - varchar(8)\n" +
-      "                                                                     , @excurstype-- excurstype - int NOT NULL\n" +
-      "                                                                     , @partner-- partner - int\n" +
-      "                                                                     , DEFAULT-- _withoutplan - bit NOT NULL\n" +
-      "                                                                     , 9 -- author - smallint NOT NULL\n" +
-      "                                                                     , 9 -- editor - smallint NOT NULL\n" +
-      "                                                                     , DEFAULT-- 'YYYY-MM-DD hh:mm:ss[.nnn]'-- adate - datetime\n" +
-      "                                                                     , DEFAULT-- 'YYYY-MM-DD hh:mm:ss[.nnn]'-- edate - datetime\n" +
-      "                                                                     , DEFAULT-- _periodonly - bit NOT NULL\n" +
-      "                                                                     , GETDATE()-- 'YYYY-MM-DD hh:mm:ss[.nnn]'-- _datebeg - datetime\n" +
-      "                                                                     , GETDATE()-- 'YYYY-MM-DD hh:mm:ss[.nnn]'-- _dateend - datetime\n" +
-      "                                                                     , ''-- _exdays - char(7)\n" +
-      "                                                                     , DEFAULT-- reserv - bit NOT NULL\n" +
-      "                                                                     , 0-- stopsale - int\n" +
-      "                                                                     , ''-- url - varchar(255)\n" +
-      "                                                                     , ''-- vouchernote - varchar(1024)\n" +
-      "                                                                     , 0 -- active - bit NOT NULL\n" +
-      "                                                                     , NULL-- 'YYYY-MM-DD hh:mm:ss'-- lasting - smalldatetime\n" +
-      "                                                                     , NULL-- area - int\n" +
-      "                                                                     , 0-- logoid - int\n" +
-      "                                                                     , DEFAULT-- _agerequired - bit NOT NULL\n" +
-      "                                                                    , ''-- reqparams - xml\n" +
-      "                                                                    ); SELECT SCOPE_IDENTITY()";
-                #endregion
+                //если редактирутся копия
+                if (data.ex_copy_id.HasValue && data.ex_copy_id.Value > 0)
+                {
+                    //обновляем dbo.excurs_temp
+                    #region UpdateExcursionCopy
+                    #region Update query
+                    var updateQuery = " update dbo.excurs_temp set " +
+          "                                                                       name  = @exname" +
+          "                                                                     , lname = @lname" +
+          "                                                                     , region = @region" +
+          "                                                                     , note = @note" +
+          "                                                                     , route = @route" +
+          "                                                                     , excurstype = @excurstype" +
+          "                                                                     , partner = @partner" +
+          "                                                                     , author = 9" +
+          "                                                                     , editor = 9" +
+          "                                                                     , edate = GETDATE()" +
 
-                var note = string.Format("{0}\ncom:{1}", (string.IsNullOrEmpty(data.exc_region_name) ? "" : "newReg:" + data.exc_region_name), data.exc_comis);
+          "                                                           Where inc = @exc_id";
+                    #endregion
 
-                if (note.Length > 255)
-                    note = note.Substring(0, 255);
+                    var note = "newReg:" + data.exc_region_name;
 
-                var res = DatabaseOperationProvider.Query(query,
-                                                             "excurs",
-                                                             new
-                                                             {
-                                                                 exname = (!string.IsNullOrEmpty(data.ru_name) ? data.ru_name : data.en_name),
-                                                                 lname = data.en_name,
-                                                                 region = data.exc_region.Value,
-                                                                 note = note,
-                                                                 route = data.exc_en_route,
-                                                                 partner = provider,
-                                                                 excurstype = (data.exc_type.Value == 4) ? 3 : 2
+                    if (note.Length > 255)
+                        note = note.Substring(0, 255);
 
-                                                             });
-                #endregion
+                    var insertRes = DatabaseOperationProvider.Query(updateQuery,
+                                                                 "excurs",
+                                                                 new
+                                                                 {
+                                                                     exname = (!string.IsNullOrEmpty(data.ru_name) ? data.ru_name : data.en_name),
+                                                                     lname = data.en_name,
+                                                                     region = data.exc_region.Value,
+                                                                     note = note,
+                                                                     route = data.exc_en_route,
+                                                                     partner = provider,
+                                                                     excurstype = (data.exc_type.Value == 4) ? 3 : 2,
+                                                                     exc_id = data.ex_copy_id.Value
+                                                                 });
+                    #endregion
 
-                int newId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+                    //удаляем старые descriptions + lang descriptions
+                    var deleteQuery = "delete from dbo.exdsclang_temp where exdsc = (select inc from exdsc_temp where excurs = @excurs)";
 
+                    DatabaseOperationProvider.Query(deleteQuery, "exc_desc_lang", new { excurs = data.ex_copy_id.Value });
+
+                    deleteQuery = "delete from exdsc_temp where excurs = @excurs";
+
+                    DatabaseOperationProvider.Query(deleteQuery, "exc_desc", new { excurs = data.ex_copy_id.Value });
+
+                    //удаляем старые типы
+                    var deleteCatsQuery = "delete from dbo.excatlist_temp where excurs = @excurs";
+
+                    DatabaseOperationProvider.Query(deleteCatsQuery, "exc_cat", new { excurs = data.ex_copy_id.Value});
+
+                }
+                else //иначе
+                {
+                    //добавляем копию
+                    #region AddExcursionCopy
+                    #region Insert query
+                    var insertQuery = "delete from  dbo.excurs_temp where excurs_id =  @exc_id ; go "+
+          "                                                 INSERT INTO dbo.excurs_temp( " +
+          "                                                                       name " +
+          "                                                                     , lname " +
+          "                                                                     , duration " +
+          "                                                                     , region " +
+          "                                                                     , horder " +
+          "                                                                     , distance " +
+          "                                                                     , maxinfage " +
+          "                                                                     , maxchildage " +
+          "                                                                     , note " +
+          "                                                                     , freeexcurs" +
+          "                                                                     , voucher" +
+          "                                                                     , roomnum" +
+          "                                                                     , people" +
+          "                                                                     , _individual" +
+          "                                                                     , route" +
+          "                                                                     , skey" +
+          "                                                                     , excurstype" +
+          "                                                                     , partner" +
+          "                                                                     , _withoutplan" +
+          "                                                                     , author" +
+          "                                                                     , editor" +
+          "                                                                     , adate" +
+          "                                                                     , edate" +
+          "                                                                     , _periodonly" +
+          "                                                                     , _datebeg" +
+          "                                                                     , _dateend" +
+          "                                                                     , _exdays" +
+          "                                                                     , reserv" +
+          "                                                                     , stopsale" +
+          "                                                                     , url" +
+          "                                                                     , vouchernote" +
+          "                                                                     , active" +
+          "                                                                     , lasting" +
+          "                                                                     , area" +
+          "                                                                     , logoid" +
+          "                                                                     , _agerequired" +
+          "                                                                     , reqparams"+
+          "                                                                     , excurs_id)" +
+
+          "                                                           VALUES   ( @exname -- name - varchar(64) \n" +
+          "                                                                     , @lname -- lname - varchar(64) \n" +
+          "                                                                     , ''-- duration - varchar(64)\n" +
+          "                                                                     , @region -- region - int\n" +
+          "                                                                     , 0-- horder - bit\n" +
+          "                                                                     , 0-- distance - money\n" +
+          "                                                                     , 0-- maxinfage - int\n" +
+          "                                                                     , 0-- maxchildage - int\n" +
+          "                                                                     , @note -- note - varchar(255)\n" +
+          "                                                                     , DEFAULT-- freeexcurs - bit NOT NULL\n" +
+          "                                                                     , DEFAULT-- voucher - bit NOT NULL\n" +
+          "                                                                     , DEFAULT-- roomnum - bit NOT NULL\n" +
+          "                                                                     , DEFAULT-- people - bit NOT NULL\n" +
+          "                                                                     , DEFAULT-- _individual - bit NOT NULL\n" +
+          "                                                                     , @route -- route - varchar(255)\n" +
+          "                                                                     , ''-- skey - varchar(8)\n" +
+          "                                                                     , @excurstype-- excurstype - int NOT NULL\n" +
+          "                                                                     , @partner-- partner - int\n" +
+          "                                                                     , DEFAULT-- _withoutplan - bit NOT NULL\n" +
+          "                                                                     , 9 -- author - smallint NOT NULL\n" +
+          "                                                                     , 9 -- editor - smallint NOT NULL\n" +
+          "                                                                     , GETDATE()-- 'YYYY-MM-DD hh:mm:ss[.nnn]'-- adate - datetime\n" +
+          "                                                                     , GETDATE()-- 'YYYY-MM-DD hh:mm:ss[.nnn]'-- edate - datetime\n" +
+          "                                                                     , DEFAULT-- _periodonly - bit NOT NULL\n" +
+          "                                                                     , GETDATE()-- 'YYYY-MM-DD hh:mm:ss[.nnn]'-- _datebeg - datetime\n" +
+          "                                                                     , GETDATE()-- 'YYYY-MM-DD hh:mm:ss[.nnn]'-- _dateend - datetime\n" +
+          "                                                                     , ''-- _exdays - char(7)\n" +
+          "                                                                     , DEFAULT-- reserv - bit NOT NULL\n" +
+          "                                                                     , 0-- stopsale - int\n" +
+          "                                                                     , ''-- url - varchar(255)\n" +
+          "                                                                     , ''-- vouchernote - varchar(1024)\n" +
+          "                                                                     , 0 -- active - bit NOT NULL\n" +
+          "                                                                     , NULL-- 'YYYY-MM-DD hh:mm:ss'-- lasting - smalldatetime\n" +
+          "                                                                     , NULL-- area - int\n" +
+          "                                                                     , 0-- logoid - int\n" +
+          "                                                                     , DEFAULT-- _agerequired - bit NOT NULL\n" +
+          "                                                                     , ''-- reqparams - xml\n" +
+          "                                                                     , @exc_id" +
+          "                                                                    ); SELECT SCOPE_IDENTITY()";
+                    #endregion
+
+                    var note = "newReg:" + data.exc_region_name;
+
+                    if (note.Length > 255)
+                        note = note.Substring(0, 255);
+
+                    var insertRes = DatabaseOperationProvider.Query(insertQuery,
+                                                                 "excurs",
+                                                                 new
+                                                                 {
+                                                                     exname = (!string.IsNullOrEmpty(data.ru_name) ? data.ru_name : data.en_name),
+                                                                     lname = data.en_name,
+                                                                     region = data.exc_region.Value,
+                                                                     note = note,
+                                                                     route = data.exc_en_route,
+                                                                     partner = provider,
+                                                                     excurstype = (data.exc_type.Value == 4) ? 3 : 2,
+                                                                     exc_id = data.ex_id.Value
+                                                                 });
+                    #endregion
+
+                    data.ex_copy_id = Convert.ToInt32(insertRes.Tables[0].Rows[0][0]);
+                }
+
+                //добавляем типы
                 #region categories 
-                query = "INSERT INTO dbo.excatlist (excurs, excurscategory) VALUES(@excurs, @excurscategory)";
+                var query = "INSERT INTO dbo.excatlist_temp (excurs, excurscategory) VALUES(@excurs, @excurscategory)";
 
-                DatabaseOperationProvider.Query(query, "exc_cat", new { excurs = newId, excurscategory = data.exc_cat.Value });
-                DatabaseOperationProvider.Query(query, "exc_cat", new { excurs = newId, excurscategory = data.exc_type.Value });
+                DatabaseOperationProvider.Query(query, "exc_cat", new { excurs = data.ex_copy_id.Value, excurscategory = data.exc_cat.Value });
+                DatabaseOperationProvider.Query(query, "exc_cat", new { excurs = data.ex_copy_id.Value, excurscategory = data.exc_type.Value });
                 #endregion
 
+                //добавляем описания
                 #region description 
 
-                query = "INSERT INTO dbo.exdsc(excurs, tree, sorder, description) " +
+
+                query = "INSERT INTO dbo.exdsc_temp(excurs, tree, sorder, description) " +
                         "VALUES (@excurs, 2, 1, @description); SELECT SCOPE_IDENTITY()";
 
-                res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = newId, description = (data.lang == "ru" ? data.exc_ru_details + "\n" + data.exc_ru_cancelations + "\n" + data.exc_ru_stuff : "") });
+                var res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = data.ex_copy_id.Value, description = langs.ContainsKey("2")? langs["2"] : ""});
 
                 int descId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
 
-                #endregion 
-
                 #region langDescription 
-                query = "INSERT INTO dbo.exdsclang(  exdsc , lang , description , changed) " +
-                         "VALUES( @exdsc , @lang , @description , 0)";
 
-
-                DatabaseOperationProvider.Query(query, "exc_cat", new
+                foreach (string langId in langs.Keys)
                 {
-                    exdsc = descId,
-                    description = data.exc_en_details + "\n" + data.exc_en_cancelations + "\n" + data.exc_en_stuff,
-                    lang = 1
-                });
+                    query = "INSERT INTO dbo.exdsclang_temp(  exdsc , lang , description , changed) " +
+                             "VALUES( @exdsc , @lang , @description , 0)";
 
-                if (data.lang != "ru")
                     DatabaseOperationProvider.Query(query, "exc_cat", new
                     {
                         exdsc = descId,
-                        description = data.exc_ru_details + "\n" + data.exc_ru_cancelations + "\n" + data.exc_ru_stuff,
-                        lang = GetLanguageId(data.lang)
+                        description = langs[langId],
+                        lang = Convert.ToInt32(langId)
                     });
+                }
                 #endregion
 
+                //для копии добавляем фото
                 #region photos
-                query = " INSERT INTO dbo.excurspicture ( excurs , sorder , description , image , width , height ) " +
+                query = " INSERT INTO dbo.excurspicture_temp ( excurs, sorder , description , image , width , height ) " +
                         " VALUES(  @excurs, @sortOrder , '', @image, 0, 0)";
 
                 if (data.photos != null)
@@ -484,9 +549,9 @@ namespace GuestService.Controllers.Api
                     int cnt = 0;
                     foreach (string fileName in data.photos)
                     {
-                        DatabaseOperationProvider.Query(query, "exc_cat", new
+                        DatabaseOperationProvider.Query(query, "exc_pict", new
                         {
-                            excurs = newId,
+                            excurs = data.ex_copy_id.Value,
                             sortOrder = cnt++,
                             image = GetImageByName(fileName)
                         });
@@ -496,97 +561,99 @@ namespace GuestService.Controllers.Api
                         DeleteImage(fileName);
                 }
                 #endregion
-
-                #region prices
-
-                for (var i = 0; i < data.ad_price.Length; i++)
-                {
-
-                    #region AddPrice
-                    try
-                    {
-                        query = "INSERT INTO dbo.exprice ( excurs , datebeg , dateend , adult , child , inf , currency, partner, " +
-                                " hotel , region , grouptown , author , editor , adate , edate , language , exgrouptype , complete, " +
-                                " total , groupfrom , grouptill , days , extime , grouppartner , fortourist , forpartner , isgroupsuppl, " +
-                                " groupsuplfrom , groupsuplsum , saledatefrom , saledatetill ) " +
-                                " VALUES (@exc, @adate, @edate, @ad_price, @ch_price, @inf_price, @currency, 2," +
-                                " DEFAULT, DEFAULT, DEFAULT, 9 , 9, GETDATE(), GETDATE(), @pr_lang, @group_type, @complete, " +
-                                " @total , @group_from , @group_to, @days, DEFAULT , DEFAULT , 1 , 1, DEFAULT, " +
-                                " DEFAULT , DEFAULT, @sdate_from, @sdate_to) ";
-
-                        DatabaseOperationProvider.Query(query, "exc_cat", new
-                        {
-                            exc = newId,
-                            ad_price = data.group_type[i] == 2 ? data.ad_price[i] : 0,
-                            ch_price = data.group_type[i] == 2 ? data.ch_price[i] : 0,
-                            inf_price = data.group_type[i] == 2 ? data.inf_price[i] : 0,
-                            total = data.group_type[i] != 2 ? data.total[i] : 0,
-                            group_from = data.group_from[i],
-                            group_to = data.group_to[i],
-                            group_type = data.group_type[i],
-                            currency = data.currency[i],
-                            pr_lang = data.pr_lang[i],
-                            adate = data.adate[i],
-                            edate = data.edate[i],
-                            days = data.days[i],
-                            sdate_from = data.sdate_from[i],
-                            sdate_to = data.sdate_to[i],
-                            complete = data.group_type[i] != 2 ? 1 : 0
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                    #endregion
-
-                    #region Add exdetplan
-
-                    try
-                    {
-                        query = "INSERT INTO dbo.exdetplan ( excurs, datebeg, dateend, exdays, author, editor, adate, edate " +
-                                " , language, exgrouptype, stopsale,  region " +
-                                " , starttime, customroute ) " +
-                                " VALUES ( @exc , @adate , @edate , @days, 9 , 9 , GETDATE() , GETDATE() " +
-                                " , @pr_lang , @group_type , -360 , @region " +
-                                " ,  GETDATE() ,  DEFAULT)";
-
-                        DatabaseOperationProvider.Query(query, "exc_cat", new
-                        {
-                            exc = newId,
-                            group_type = data.group_type[i],
-                            pr_lang = data.pr_lang[i],
-                            adate = data.adate[i],
-                            edate = data.edate[i],
-                            days = data.days[i],
-                            region = data.exc_region
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                    #endregion
-                }
-
-                #endregion
+                #endregion 
 
                 #region sendMessages
                 var exName = new GuestService.Data.AddExcursionData() { ExcursionName = data.en_name };
 
                 var service = new SimpleEmailService();
 
-                service.SendEmail<GuestService.Data.AddExcursionData>(WebSecurity.CurrentUserName, "addexcursion", "en", exName, false, null);
+                service.SendEmail<GuestService.Data.AddExcursionData>(WebSecurity.CurrentUserName, "editexcursion", "en", exName, false, null);
                 #endregion
-                return newId;
+                return data.ex_copy_id.Value;
             }
             catch (Exception ex)
             {
                 var ms = ex.Message;
                 throw ex;
             }
+        }
 
-            return 0;
+        private static void InsertLifePrices(UpdateExcursion data)
+        {
+            var query = "";
+
+            #region Prices
+            for (var i = 0; i < data.ad_price.Length; i++)
+            {
+
+                #region AddPrice
+                try
+                {
+                    query = "INSERT INTO dbo.exprice ( excurs , datebeg , dateend , adult , child , inf , currency, partner, " +
+                            " hotel , region , grouptown , author , editor , adate , edate , language , exgrouptype , complete, " +
+                            " total , groupfrom , grouptill , days , extime , grouppartner , fortourist , forpartner , isgroupsuppl, " +
+                            " groupsuplfrom , groupsuplsum , saledatefrom , saledatetill ) " +
+                            " VALUES (@exc, @adate, @edate, @ad_price, @ch_price, @inf_price, @currency, 2," +
+                            " DEFAULT, DEFAULT, DEFAULT, 9 , 9, GETDATE(), GETDATE(), @pr_lang, @group_type, @complete, " +
+                            " @total , @group_from , @group_to, @days, DEFAULT , DEFAULT , 1 , 1, DEFAULT, " +
+                            " DEFAULT , DEFAULT, @sdate_from, @sdate_to) ";
+
+                    DatabaseOperationProvider.Query(query, "exc_price", new
+                    {
+                        exc = data.ex_id.Value,
+                        ad_price = data.group_type[i] == 2 ? data.ad_price[i] : 0,
+                        ch_price = data.group_type[i] == 2 ? data.ch_price[i] : 0,
+                        inf_price = data.group_type[i] == 2 ? data.inf_price[i] : 0,
+                        total = data.group_type[i] != 2 ? data.total[i] : 0,
+                        group_from = data.group_from[i],
+                        group_to = data.group_to[i],
+                        group_type = data.group_type[i],
+                        currency = data.currency[i],
+                        pr_lang = data.pr_lang[i],
+                        adate = data.adate[i],
+                        edate = data.edate[i],
+                        days = data.days[i],
+                        sdate_from = data.sdate_from[i],
+                        sdate_to = data.sdate_to[i],
+                        complete = data.group_type[i] != 2 ? 1 : 0
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                #endregion
+
+                #region Add exdetplan
+
+                try
+                {
+                    query = "INSERT INTO dbo.exdetplan ( excurs, datebeg, dateend, exdays, author, editor, adate, edate " +
+                            " , language, exgrouptype, stopsale,  region " +
+                            " , starttime, customroute ) " +
+                            " VALUES ( @exc , @adate , @edate , @days, 9 , 9 , GETDATE() , GETDATE() " +
+                            " , @pr_lang , @group_type , -360 , @region " +
+                            " ,  GETDATE() ,  DEFAULT)";
+
+                    DatabaseOperationProvider.Query(query, "exc_cat", new
+                    {
+                        exc = data.ex_id.Value,
+                        group_type = data.group_type[i],
+                        pr_lang = data.pr_lang[i],
+                        adate = data.adate[i],
+                        edate = data.edate[i],
+                        days = data.days[i],
+                        region = data.exc_region
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                #endregion
+            }
+            #endregion
         }
 
         private static void DeleteImage(string fileName)
@@ -649,8 +716,8 @@ namespace GuestService.Controllers.Api
             return result;
         }
 
-        [HttpPost, HttpGet, ActionName("updateexcursion")]
-        public System.Web.Mvc.JsonResult UpdateExcursion([FromUri] UpdateExcursion data)
+        [HttpPost, HttpGet, ActionName("editexcursion")]
+        public System.Web.Mvc.JsonResult EditExcursion([FromBody] UpdateExcursion data)
         {
             System.Web.Mvc.JsonResult result = new System.Web.Mvc.JsonResult();
 
@@ -658,7 +725,16 @@ namespace GuestService.Controllers.Api
             {
                 var providerId = GetProviderId(WebSecurity.CurrentUserId);
 
-                UpdateExcursion(data, providerId);
+                var req = HttpContext.Current.Request;
+
+                var descriptions = new Dictionary<string, string>();
+                var langs = PartnerProvider.GetPartnerLangs();
+
+                foreach (var langItem in langs)
+                    if (req["exc_"+ langItem.Key+ "_details"] != null)
+                        descriptions.Add(langItem.Key, req["exc_" + langItem.Key + "_details"]);
+
+                UpdateExcursion(data, providerId, descriptions);
 
                 result.Data = new { id = data.ex_id.Value };
             }
@@ -939,7 +1015,7 @@ namespace GuestService.Controllers.Api
             return id.ToString();
         }
 
-        [HttpGet, ActionName("deletephoto")]
+        [ HttpGet, ActionName("deletephoto")]
         public string DeleteExcursion(int id, bool ismain)
         {
             if (!WebSecurity.IsAuthenticated)

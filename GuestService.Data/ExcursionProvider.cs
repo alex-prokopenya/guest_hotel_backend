@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using GuestService.Models.Partner;
 namespace GuestService.Data
 {
 	public static class ExcursionProvider
@@ -787,6 +788,27 @@ namespace GuestService.Data
             return excs;
         }
 
+
+        public static Image GetEditImage(int id, bool isMain)
+        {
+            var query = "select image from " + (isMain ? "excurspicture" : "excurspicture_temp") + " where inc = " + id;
+
+
+            DataSet ds = DatabaseOperationProvider.Query(query, "images", new { });
+
+            DataRow row = ds.Tables["images"].Rows.Cast<DataRow>().FirstOrDefault<DataRow>();
+            Image result;
+            if (row != null && !row.IsNull("image"))
+            {
+                result = Image.FromStream(new System.IO.MemoryStream((byte[])row["image"]));
+            }
+            else
+            {
+                result = null;
+            }
+            return result;
+        }
+
         public static Image GetCatalogImage(int id, int index)
 		{
 			DataSet ds = DatabaseOperationProvider.QueryProcedure("up_guest_getCatalogImage", "image", new
@@ -1161,7 +1183,8 @@ namespace GuestService.Data
                                              out string route,
                                              out int[] types,
                                              out int region,
-                                             out KeyValuePair<int, string>[] descriptions
+                                             out KeyValuePair<int, string>[] descriptions,
+                                             out int copyId
                                         )
         {
             names = new KeyValuePair<int, string>[2];
@@ -1171,14 +1194,15 @@ namespace GuestService.Data
             //определить, из какой таблицы брать описание
 
             //ищем данные в основной и временной таблицах
-            var query = "       select inc, name, lname, route, region, edate from excurs      where inc = " + id +
-                        " union select inc, name, lname, route, region, edate from excurs_temp where excurs_id = " + id;
+            var query = "       select 0 as srt, inc, name, lname, route, region, edate from excurs      where inc = " + id +
+                        " union select 1 as srt, inc, name, lname, route, region, edate from excurs_temp where excurs_id = " + id + " order by srt asc";
 
             var res = DatabaseOperationProvider.Query(query, "excurs", new { });
 
             //по умолчанию берем данные из основной
             var row = res.Tables[0].Rows[0];
             string tablesPostfix = "";
+            copyId = -1;
 
             //если есть информация и о временной таблице
             if (res.Tables[0].Rows.Count > 1)
@@ -1192,6 +1216,8 @@ namespace GuestService.Data
                     //если во временной таблице более актуальная версия, берем информацию из нее
                     row = res.Tables[0].Rows[1];
                     tablesPostfix = "_temp";
+
+                    copyId = row.ReadInt("inc");
                 }
             }
 
@@ -1246,36 +1272,64 @@ namespace GuestService.Data
             return result.ToArray();
         }
 
-        public static KeyValuePair<int, string>[] GetExcursionOldPrices(int id)
+        public static KeyValuePair<int, PriceInfo>[] GetExcursionOldPrices(int id, KeyValuePair<string, string>[] langs)
         {
-            var result = new List<KeyValuePair<int, string>>();
+            var result = new List<KeyValuePair<int, PriceInfo>>();
 
-            var query = "       select inc, datebeg, dateend, adult, child, inf, total from exprice where excurs  = " + id;
+            var query = "       select inc, currency, language, datebeg, dateend, adult, child, inf, total, days, groupfrom, grouptill from exprice where excurs  = " + id;
 
             var res = DatabaseOperationProvider.Query(query, "categories", new { });
 
+            var langsDict = new Dictionary<string, string>();
+
+            foreach (var langItem in langs)
+                if(!langsDict.ContainsKey(langItem.Key))
+                    langsDict.Add(langItem.Key, langItem.Value);
+
             foreach (DataRow priceItem in res.Tables[0].Rows)
             {
-                var priceInfo = priceItem.ReadDecimal("total") > 0 
-                                    ?
-                                    string.Format("from {0:mm-dd-yy} till {1:mm-dd-yy} total {2}", new object[] {
-                                        priceItem.ReadDateTime("datebeg"),
-                                        priceItem.ReadDateTime("dateend"),
-                                        priceItem.ReadDateTime("total")
-                                    }) 
-                                    :
-                                    string.Format("from {0:mm-dd-yy} till {1:mm-dd-yy} adl {2}, chd {3}, inf {4}", new object[] {
-                                        priceItem.ReadDateTime("datebeg"),
-                                        priceItem.ReadDateTime("dateend"),
-                                        priceItem.ReadDateTime("adult"),
-                                        priceItem.ReadDateTime("child"),
-                                        priceItem.ReadDateTime("inf")
-                                    }) ;
+                var priceInfo = new PriceInfo();
 
-                result.Add(new KeyValuePair<int, string>(priceItem.ReadInt("inc"), priceInfo));
+                priceInfo.Dates = priceItem.ReadDateTime("datebeg").ToString("MM/dd/yyyy") + " " + priceItem.ReadDateTime("dateend").ToString("MM/dd/yyyy");
+
+                if (priceItem.ReadDecimal("total") > 0)
+                    priceInfo.Summ = "total " + priceItem.ReadDecimal("total").ToString("N0");
+                else
+                    priceInfo.Summ = string.Format("adl {0:N0}, chd {1:N0}, inf {2:N0}", new object[] {
+                                        
+                                        priceItem.ReadDecimal("adult"),
+                                        priceItem.ReadDecimal("child"),
+                                        priceItem.ReadDecimal("inf")
+                                    });
+
+                var lang = priceItem.ReadInt("language").ToString();
+
+                priceInfo.Summ += priceItem.ReadInt("currency") == 8 ? " eur":" usd";
+
+                priceInfo.Weekdays = ConvertWeekdays(priceItem.ReadNullableString("days"));
+                priceInfo.Group = priceItem.ReadInt("groupfrom") + " - " + priceItem.ReadInt("grouptill");
+                priceInfo.Lang = (langsDict.ContainsKey(lang)) ? langsDict[lang] : "=";
+                priceInfo.Type = (priceItem.ReadDecimal("total") > 0) ? "Individual":"Group";
+                result.Add(new KeyValuePair<int, PriceInfo>(priceItem.ReadInt("inc"), priceInfo));
             }
 
             return result.ToArray();
+        }
+
+        private static string ConvertWeekdays(string inp)
+        {
+            var result = "Mn, Tu, Wd, Th, Fr, St, Sn";
+
+            if (string.IsNullOrEmpty(inp)) return result;
+
+            var pars = result.Split(',');
+            var selectedDays = new List<string>();
+
+            for(var i=0; i< inp.Length; i++)
+                if (inp[i] == '1')
+                    selectedDays.Add(pars[i]);
+
+            return string.Join(",", selectedDays.ToArray());
         }
 
         public static void DeleteOldPhoto(int id, bool isMain, int providerId)
@@ -1285,7 +1339,7 @@ namespace GuestService.Data
 
             var table_postfix = isMain ? "" : "_temp";
 
-            var query = "delete from excurspicture"+ table_postfix + " where inc = @pictId and excurs in (select inc from excurs where patner = @partner)";
+            var query = "delete from excurspicture"+ table_postfix + " where inc = @pictId and excurs in (select inc from excurs where partner = @partner)";
 
             var res = DatabaseOperationProvider.Query(query, "partners", new { pictId = id, partner = providerId });
         }
@@ -1295,7 +1349,7 @@ namespace GuestService.Data
             //проверить, принадлежит ли экскурсия пользователю
             //удалить цену
 
-            var query = "delete from exprice where inc = @priceId and excurs in (select inc from excurs where patner = @partner)";
+            var query = "delete from exprice where inc = @priceId and excurs in (select inc from excurs where partner = @partner)";
 
             var res = DatabaseOperationProvider.Query(query, "partners", new { priceId = id, partner = providerId });
 

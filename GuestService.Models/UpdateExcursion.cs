@@ -9,11 +9,15 @@ namespace GuestService.Models
     {
         public string[] photos { get; set; }
 
-        public string lang { get; set; }
-
         public string exc_region_name{ get; set; }
 
         public int? ex_id
+        {
+            get;
+            set;
+        }
+
+        public int? ex_copy_id
         {
             get;
             set;
@@ -42,54 +46,14 @@ namespace GuestService.Models
             get;
             set;
         }
-        public string exc_en_details
-        {
-            get;
-            set;
-        }
-        public string exc_ru_details
-        {
-            get;
-            set;
-        }
-        public string exc_ru_cancelations
-        {
-            get;
-            set;
-        }
-        public string exc_en_cancelations
-        {
-            get;
-            set;
-        }
-
-        public string exc_en_stuff
-        {
-            get;
-            set;
-        }
-        public string exc_ru_stuff
-        {
-            get;
-            set;
-        }
-
+       
         public string exc_en_route
         {
             get;
             set;
         }
-        public string exc_ru_route
-        {
-            get;
-            set;
-        }
-        public string exc_comis
-        {
-            get;
-            set;
-        }
       
+    
         public int? exc_region
         {
             get;

@@ -102,7 +102,7 @@ namespace GuestService.Controllers.Html
                     string userConfirmationToken = MembershipHelper.GetUserConfirmationToken(WebSecurity.GetUserId(userName));
                     if (userConfirmationToken != null)
                     {
-                        this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, userName, userConfirmationToken);
+                        this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, userName, userConfirmationToken, "client");
                     }
                 }
             }
@@ -136,7 +136,7 @@ namespace GuestService.Controllers.Html
                     bool requireConfirmationToken = true;
                     string confirmationToken = WebSecurity.CreateUserAndAccount(model.UserName, password, null, requireConfirmationToken);
                     OAuthWebSecurity.CreateOrUpdateAccount(providerName, providerUserId, model.UserName);
-                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken);
+                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken,"client");
                     return base.RedirectToAction("registersuccess", new { returnUrl = returnUrl });
                 }
                 catch (MembershipCreateUserException exception)
@@ -189,7 +189,7 @@ namespace GuestService.Controllers.Html
                     if (userConfirmationToken != null)
                     {
                         base.ModelState.AddModelError("", AccountStrings.RegisterEmailNotConfirmedNote);
-                        this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, userConfirmationToken);
+                        this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, userConfirmationToken, "client");
                     }
                 }
                 else
@@ -223,7 +223,7 @@ namespace GuestService.Controllers.Html
                 try
                 {
                     string confirmationToken = WebSecurity.GeneratePasswordResetToken(model.UserName, 0x5a0);
-                    this.SendRegistrationConfirmMail(ConfirmMailOperation.recovery, model.UserName, confirmationToken);
+                    this.SendRegistrationConfirmMail(ConfirmMailOperation.recovery, model.UserName, confirmationToken,"client");
                     return base.RedirectToAction("recoverysuccess", new { returnUrl = returnUrl });
                 }
                 catch (Exception)
@@ -267,7 +267,7 @@ namespace GuestService.Controllers.Html
                 {
                     bool requireConfirmationToken = true;
                     string confirmationToken = WebSecurity.CreateUserAndAccount(model.UserName, model.Password, null, requireConfirmationToken);
-                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken);
+                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken, "client");
                     return base.RedirectToAction("registersuccess", new { returnUrl = returnUrl });
                 }
                 catch (MembershipCreateUserException exception)
@@ -305,7 +305,7 @@ namespace GuestService.Controllers.Html
 
                     bool requireConfirmationToken = true;
                     string confirmationToken = WebSecurity.CreateUserAndAccount(model.UserName, model.Password, null, requireConfirmationToken);
-                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken);
+                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken, "partner");
 
                     //add info to partners table
                     PartnerProvider.AddPartnersInfo(model);
@@ -364,7 +364,7 @@ namespace GuestService.Controllers.Html
                 {
                     bool requireConfirmationToken = true;
                     string confirmationToken = WebSecurity.CreateUserAndAccount(model.UserName, model.Password, null, requireConfirmationToken);
-                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken);
+                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken, "agent");
 
                     //add info to partners table
                     PartnerProvider.AddPartnersInfo(model);
@@ -409,7 +409,7 @@ namespace GuestService.Controllers.Html
                 {
                     bool requireConfirmationToken = true;
                     string confirmationToken = WebSecurity.CreateUserAndAccount(model.UserName, model.Password, null, requireConfirmationToken);
-                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken);
+                    this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken,"agent");
 
                     //add info to partners table
                     PartnerProvider.AddPartnersInfo(model);
@@ -494,7 +494,7 @@ namespace GuestService.Controllers.Html
             return base.View();
         }
 
-        private void SendRegistrationConfirmMail(ConfirmMailOperation action, string userName, string confirmationToken)
+        private void SendRegistrationConfirmMail(ConfirmMailOperation action, string userName, string confirmationToken, string role = "client")
         {
             if (string.IsNullOrEmpty(userName))
             {
@@ -504,6 +504,27 @@ namespace GuestService.Controllers.Html
             {
                 throw new ArgumentNullException("confirmationToken");
             }
+
+            if (action == ConfirmMailOperation.confirm)
+            {
+                new SimpleEmailService().SendEmail<AccountConfirmationTemplate>(userName,
+                                                                "send_registration_confirm",
+                                                                "en",
+                                                                new AccountConfirmationTemplate()
+                                                                {
+                                                                    Role = role,
+                                                                    Token = confirmationToken,
+                                                                    ConfirmUrl = new Uri(base.Request.BaseServerAddress(), base.Url.Action("confirm", new { email = userName, token = confirmationToken })).ToString()
+                                                                });
+            }
+            else if (action == ConfirmMailOperation.recovery)
+            {
+               string content = new Uri(base.Request.BaseServerAddress(), base.Url.Action("resetpassword", new { token = confirmationToken })).ToString();
+               UserToolsProvider.UmgRaiseMessage(UrlLanguage.CurrentLanguage, "Guest Service Registration", userName, "GS_REGCONFIRM", new XElement("guestServiceRegistration", new object[] { new XAttribute("action", action.ToString()), new XElement("confirmUrl", content), new XElement("email", userName) }).ToString());
+            }
+
+            /*
+          
             string content = null;
             switch (action)
             {
@@ -516,6 +537,7 @@ namespace GuestService.Controllers.Html
                     break;
             }
             UserToolsProvider.UmgRaiseMessage(UrlLanguage.CurrentLanguage, "Guest Service Registration", userName, "GS_REGCONFIRM", new XElement("guestServiceRegistration", new object[] { new XAttribute("action", action.ToString()), new XElement("confirmUrl", content), new XElement("email", userName) }).ToString());
+            */
         }
 
         private enum ConfirmMailOperation

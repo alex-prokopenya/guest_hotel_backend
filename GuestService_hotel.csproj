@@ -343,6 +343,7 @@
     <Compile Include="GuestService.Models.Payment\ProcessingResultModel.cs" />
     <Compile Include="GuestService.Models.Welcome\GuestInfoContext.cs" />
     <Compile Include="GuestService.Models.Welcome\WelcomeParam.cs" />
+    <Compile Include="GuestService.Models\AccountConfirmationTemplate.cs" />
     <Compile Include="GuestService.Models\UpdateExcursion.cs" />
     <Compile Include="GuestService.Models\AddExcursion.cs" />
     <Compile Include="GuestService.Models\BaseApiParam.cs" />

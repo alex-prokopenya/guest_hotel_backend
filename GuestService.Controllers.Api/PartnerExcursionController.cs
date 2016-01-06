@@ -399,7 +399,7 @@ namespace GuestService.Controllers.Api
                     //добавляем копию
                     #region AddExcursionCopy
                     #region Insert query
-                    var insertQuery = "delete from  dbo.excurs_temp where excurs_id =  @exc_id ; go "+
+                    var insertQuery = "delete from  dbo.excurs_temp where excurs_id =  @exc_id ; "+
           "                                                 INSERT INTO dbo.excurs_temp( " +
           "                                                                       name " +
           "                                                                     , lname " +

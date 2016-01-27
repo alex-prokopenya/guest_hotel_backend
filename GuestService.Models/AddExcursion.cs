@@ -105,6 +105,8 @@ namespace GuestService.Models
         public int[] group_type { get; set; }
         public int[] currency { get; set; }
         public int[] pr_lang { get; set; }
+        public int[] price_region { get; set; }
+
 
         public string[] adate { get; set; }
         public string[] edate { get; set; }

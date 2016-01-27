@@ -5,7 +5,7 @@ using System.Text;
 
 namespace GuestService.Models
 {
-    class AccountConfirmationTemplate
+    public class AccountConfirmationTemplate
     {
         public string Role;
 

@@ -17,14 +17,14 @@ namespace GuestService.Notifications
 
         }
 
-        public void SendEmail<T>(string to, string templateName, string language, T model, bool throwException, KeyValuePair<string, string>[] files = null)
+        public void SendEmail<T>(string to, string templateName, string language, T model, bool throwException, KeyValuePair<string, string>[] files = null, string bcc="")
         {
 
             try
             {
                 var content = TemplateParser.ParseMessage(templateName, language, "Email", model);
 
-                var message = BuildMessage(to, content.Subject, content.Body, files);
+                var message = BuildMessage(to, content.Subject, content.Body, files, bcc);
 
 
                 var client = new SmtpClient(ConfigurationManager.AppSettings.Get("smtp_server"),
@@ -54,7 +54,7 @@ namespace GuestService.Notifications
             SendEmail<T>(to, templateName, language, model, throwException, null);
         }
 
-        private MailMessage BuildMessage(string to, string subject, string content,  KeyValuePair<string, string>[] files = null)
+        private MailMessage BuildMessage(string to, string subject, string content,  KeyValuePair<string, string>[] files = null, string bcc= "")
         {
             string htmlBody = content;
             AlternateView avHtml = AlternateView.CreateAlternateViewFromString
@@ -94,6 +94,11 @@ namespace GuestService.Notifications
             // Address and send the message
             m.From = new MailAddress(ConfigurationManager.AppSettings.Get("smtp_user"), "ExGo.com info");
             m.To.Add(new MailAddress(to));
+
+            if(!string.IsNullOrEmpty(bcc))
+                m.Bcc.Add(new MailAddress(bcc));
+
+
             m.Subject = subject;
             m.IsBodyHtml = true;
             m.BodyEncoding = new System.Text.UTF8Encoding();

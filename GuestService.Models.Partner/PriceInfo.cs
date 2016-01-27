@@ -11,6 +11,7 @@ namespace GuestService.Models.Partner
         public string Type; //+
         public string Summ; //+
         public string Lang; //+
+        public string Region; //+
         public string Group; //+
         public string Weekdays; //+
     }

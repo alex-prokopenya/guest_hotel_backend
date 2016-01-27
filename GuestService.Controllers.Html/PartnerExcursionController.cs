@@ -533,7 +533,7 @@ namespace GuestService.Controllers.Html
                                                 out context.CopyExcursionId);
 
             context.OldPhotos = ExcursionProvider.GetExcursionOldPhotos(id.Value);
-            context.OldPrices = ExcursionProvider.GetExcursionOldPrices(id.Value, context.Languages);
+            context.OldPrices = ExcursionProvider.GetExcursionOldPrices(id.Value, context.Languages, context.Regions);
 
             return base.View(context);
         }

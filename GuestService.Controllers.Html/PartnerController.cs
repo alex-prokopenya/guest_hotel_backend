@@ -466,6 +466,7 @@ namespace GuestService.Controllers.Html
         [AllowAnonymous, ActionName("payorder")]
         public ActionResult PayOrder(int? id)
         {
+          //  WebSecurity.get
             if (WebSecurity.IsAuthenticated)
             {
                 int guestId = WebSecurity.CurrentUserId;

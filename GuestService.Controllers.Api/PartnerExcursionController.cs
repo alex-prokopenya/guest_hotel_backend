@@ -22,7 +22,8 @@ using WebMatrix.WebData;
 using System.Threading;
 using System.Threading.Tasks;
 using GuestService.Notifications;
-
+using System.Configuration;
+using System.Data;
 namespace GuestService.Controllers.Api
 {
     [HttpUrlLanguage]
@@ -116,16 +117,16 @@ namespace GuestService.Controllers.Api
       "                                                                     , _agerequired" +
       "                                                                     , reqparams )" +
 
-      "                                                           VALUES   ( @exname -- name - varchar(64) \n" +
+      "                                                           VALUES   (  @exname -- name - varchar(64) \n" +
       "                                                                     , @lname -- lname - varchar(64) \n" +
       "                                                                     , ''-- duration - varchar(64)\n" +
-      "                                                                     , @region -- region - int\n" +
+      "                                                                     , -2147483647 -- region - int\n" +
       "                                                                     , 0-- horder - bit\n" +
       "                                                                     , 0-- distance - money\n" +
       "                                                                     , 0-- maxinfage - int\n" +
       "                                                                     , 0-- maxchildage - int\n" +
       "                                                                     , @note -- note - varchar(255)\n" +
-      "                                                                     , DEFAULT-- freeexcurs - bit NOT NULL\n" +
+      "                                                                     , 1-- freeexcurs - bit NOT NULL\n" +
       "                                                                     , DEFAULT-- voucher - bit NOT NULL\n" +
       "                                                                     , DEFAULT-- roomnum - bit NOT NULL\n" +
       "                                                                     , DEFAULT-- people - bit NOT NULL\n" +
@@ -156,7 +157,7 @@ namespace GuestService.Controllers.Api
       "                                                                    ); SELECT SCOPE_IDENTITY()";
                 #endregion
 
-                 var note = string.Format("{0}\ncom:{1}", (string.IsNullOrEmpty(data.exc_region_name) ? "" : "newReg:" + data.exc_region_name), data.exc_comis);
+                 var note = "";// string.Format("{0}\ncom:{1}", (string.IsNullOrEmpty(data.exc_region_name) ? "" : "newReg:" + data.exc_region_name), data.exc_comis);
 
                  if (note.Length > 255)
                     note = note.Substring(0, 255);
@@ -167,7 +168,7 @@ namespace GuestService.Controllers.Api
                                                               {
                                                                   exname = (!string.IsNullOrEmpty(data.ru_name) ? data.ru_name : data.en_name),
                                                                   lname = data.en_name,
-                                                                  region = data.exc_region.Value,
+                                                               //   region = data.exc_region.Value,
                                                                   note = note,
                                                                   route = data.exc_en_route,
                                                                   partner = provider,
@@ -249,17 +250,18 @@ namespace GuestService.Controllers.Api
                                 " total , groupfrom , grouptill , days , extime , grouppartner , fortourist , forpartner , isgroupsuppl, " +
                                 " groupsuplfrom , groupsuplsum , saledatefrom , saledatetill ) " +
                                 " VALUES (@exc, @adate, @edate, @ad_price, @ch_price, @inf_price, @currency, 2," +
-                                " DEFAULT, DEFAULT, DEFAULT, 9 , 9, GETDATE(), GETDATE(), @pr_lang, @group_type, @complete, " +
+                                " DEFAULT, @region, DEFAULT, 9 , 9, GETDATE(), GETDATE(), @pr_lang, @group_type, @complete, " +
                                 " @total , @group_from , @group_to, @days, DEFAULT , DEFAULT , 1 , 1, DEFAULT, " +
                                 " DEFAULT , DEFAULT, @sdate_from, @sdate_to) ";
 
                         DatabaseOperationProvider.Query(query, "exc_cat", new
                         {
+                            region = data.price_region[i] > 0 ? data.price_region[i] : -2147483647,
                             exc = newId,
-                            ad_price = data.group_type[i]   == 2 ? data.ad_price[i] : 0,
-                            ch_price = data.group_type[i]   == 2 ? data.ch_price[i] : 0,
-                            inf_price = data.group_type[i]  == 2 ? data.inf_price[i] : 0,
-                            total = data.group_type[i]      != 2 ? data.total[i] : 0,
+                            ad_price = data.group_type[i]   == 1 ? data.ad_price[i] : 0,
+                            ch_price = data.group_type[i]   == 1 ? data.ch_price[i] : 0,
+                            inf_price = data.group_type[i]  == 1 ? data.inf_price[i] : 0,
+                            total = data.group_type[i]      != 1 ? data.total[i] : 0,
                             group_from = data.group_from[i],
                             group_to = data.group_to[i],
                             group_type = data.group_type[i],
@@ -270,7 +272,7 @@ namespace GuestService.Controllers.Api
                             days = data.days[i],
                             sdate_from = data.sdate_from[i],
                             sdate_to = data.sdate_to[i],
-                            complete = data.group_type[i] != 2 ? 1 : 0
+                            complete = data.group_type[i] == 2 ? 1 : 0
                         });
                     }
                     catch (Exception ex)
@@ -298,7 +300,7 @@ namespace GuestService.Controllers.Api
                             adate = data.adate[i],
                             edate = data.edate[i],
                             days = data.days[i],
-                            region = data.exc_region
+                            region = (data.price_region[i] > 0 ? (int?)data.price_region[i] : null)
                         });
                     }
                     catch (Exception ex)
@@ -316,7 +318,12 @@ namespace GuestService.Controllers.Api
 
                 var service = new SimpleEmailService();
 
-                service.SendEmail<GuestService.Data.AddExcursionData>(WebSecurity.CurrentUserName, "addexcursion", "en", exName, false, null);
+                service.SendEmail<GuestService.Data.AddExcursionData>(WebSecurity.CurrentUserName, 
+                                                                        "addexcursion", 
+                                                                        "en", 
+                                                                        exName, 
+                                                                        false, 
+                                                                        null, ConfigurationManager.AppSettings["edit_excursion_email"]);
                 #endregion
                 return newId;
             }
@@ -354,15 +361,16 @@ namespace GuestService.Controllers.Api
           "                                                                     , partner = @partner" +
           "                                                                     , author = 9" +
           "                                                                     , editor = 9" +
+          "                                                                     , freeexcurs = 1" +
           "                                                                     , edate = GETDATE()" +
 
           "                                                           Where inc = @exc_id";
                     #endregion
 
-                    var note = "newReg:" + data.exc_region_name;
+                    var note = "";// "newReg:" + data.exc_region_name;
 
-                    if (note.Length > 255)
-                        note = note.Substring(0, 255);
+                   // if (note.Length > 255)
+                   //     note = note.Substring(0, 255);
 
                     var insertRes = DatabaseOperationProvider.Query(updateQuery,
                                                                  "excurs",
@@ -370,7 +378,7 @@ namespace GuestService.Controllers.Api
                                                                  {
                                                                      exname = (!string.IsNullOrEmpty(data.ru_name) ? data.ru_name : data.en_name),
                                                                      lname = data.en_name,
-                                                                     region = data.exc_region.Value,
+                                                                   //  region = data.exc_region.Value,
                                                                      note = note,
                                                                      route = data.exc_en_route,
                                                                      partner = provider,
@@ -449,7 +457,7 @@ namespace GuestService.Controllers.Api
           "                                                                     , 0-- maxinfage - int\n" +
           "                                                                     , 0-- maxchildage - int\n" +
           "                                                                     , @note -- note - varchar(255)\n" +
-          "                                                                     , DEFAULT-- freeexcurs - bit NOT NULL\n" +
+          "                                                                     , 1-- freeexcurs - bit NOT NULL\n" +
           "                                                                     , DEFAULT-- voucher - bit NOT NULL\n" +
           "                                                                     , DEFAULT-- roomnum - bit NOT NULL\n" +
           "                                                                     , DEFAULT-- people - bit NOT NULL\n" +
@@ -568,7 +576,13 @@ namespace GuestService.Controllers.Api
 
                 var service = new SimpleEmailService();
 
-                service.SendEmail<GuestService.Data.AddExcursionData>(WebSecurity.CurrentUserName, "editexcursion", "en", exName, false, null);
+                service.SendEmail<GuestService.Data.AddExcursionData>(WebSecurity.CurrentUserName, 
+                                                                    "editexcursion", 
+                                                                    "en", 
+                                                                    exName, 
+                                                                    false, 
+                                                                    null,
+                                                                    ConfigurationManager.AppSettings["edit_excursion_email"]);
                 #endregion
                 return data.ex_copy_id.Value;
             }
@@ -595,17 +609,18 @@ namespace GuestService.Controllers.Api
                             " total , groupfrom , grouptill , days , extime , grouppartner , fortourist , forpartner , isgroupsuppl, " +
                             " groupsuplfrom , groupsuplsum , saledatefrom , saledatetill ) " +
                             " VALUES (@exc, @adate, @edate, @ad_price, @ch_price, @inf_price, @currency, 2," +
-                            " DEFAULT, DEFAULT, DEFAULT, 9 , 9, GETDATE(), GETDATE(), @pr_lang, @group_type, @complete, " +
+                            " DEFAULT, @region, DEFAULT, 9 , 9, GETDATE(), GETDATE(), @pr_lang, @group_type, @complete, " +
                             " @total , @group_from , @group_to, @days, DEFAULT , DEFAULT , 1 , 1, DEFAULT, " +
                             " DEFAULT , DEFAULT, @sdate_from, @sdate_to) ";
 
                     DatabaseOperationProvider.Query(query, "exc_price", new
                     {
+                        region = data.price_region[i] > 0 ? data.price_region[i] : -2147483647,
                         exc = data.ex_id.Value,
-                        ad_price = data.group_type[i] == 2 ? data.ad_price[i] : 0,
-                        ch_price = data.group_type[i] == 2 ? data.ch_price[i] : 0,
-                        inf_price = data.group_type[i] == 2 ? data.inf_price[i] : 0,
-                        total = data.group_type[i] != 2 ? data.total[i] : 0,
+                        ad_price = data.group_type[i] == 1 ? data.ad_price[i] : 0,
+                        ch_price = data.group_type[i] == 1 ? data.ch_price[i] : 0,
+                        inf_price = data.group_type[i] == 1 ? data.inf_price[i] : 0,
+                        total = data.group_type[i] != 1 ? data.total[i] : 0,
                         group_from = data.group_from[i],
                         group_to = data.group_to[i],
                         group_type = data.group_type[i],
@@ -616,7 +631,7 @@ namespace GuestService.Controllers.Api
                         days = data.days[i],
                         sdate_from = data.sdate_from[i],
                         sdate_to = data.sdate_to[i],
-                        complete = data.group_type[i] != 2 ? 1 : 0
+                        complete = data.group_type[i] == 2 ? 1 : 0
                     });
                 }
                 catch (Exception ex)
@@ -644,7 +659,7 @@ namespace GuestService.Controllers.Api
                         adate = data.adate[i],
                         edate = data.edate[i],
                         days = data.days[i],
-                        region = data.exc_region
+                        region = (data.price_region[i] > 0 ? (int?)data.price_region[i] : null)
                     });
                 }
                 catch (Exception ex)
@@ -1148,11 +1163,36 @@ namespace GuestService.Controllers.Api
 
         public static System.Collections.Generic.List<CatalogExcursionMinPrice> FilterExcursions(System.Collections.Generic.List<CatalogExcursionMinPrice>  excursions, int provider)
         {
+            //получить актуальные имена и статусы
+            var res = DatabaseOperationProvider.Query("select inc, lname as name, freeexcurs from excurs where partner = @partner " + 
+                                                    "union select excurs_id as inc,  name, freeexcurs from excurs_temp where partner = @partner ", 
+                                                    "info", new { partner = provider} );
+
+            if(UrlLanguage.CurrentLanguage == "ru")
+                res = DatabaseOperationProvider.Query("select inc, name, freeexcurs from excurs where partner = @partner " +
+                                                    "union select excurs_id as inc,  name, freeexcurs from excurs_temp where partner = @partner ",
+                                                    "info", new { partner = provider });
+
+            var excInfo = new Dictionary<int, KeyValuePair<string, bool>>();
+
+            foreach (DataRow row in res.Tables[0].Rows)
+                excInfo[row.ReadInt("inc")] = new KeyValuePair<string, bool>(row.ReadString("name"), row.ReadBoolean("freeexcurs"));
+
             System.Collections.Generic.List<CatalogExcursionMinPrice> list = new List<CatalogExcursionMinPrice>();
 
-            foreach(CatalogExcursionMinPrice exc in excursions)
-                if(provider == exc.excursion.excursionPartner.id)
+            foreach (CatalogExcursionMinPrice exc in excursions)
+                if (provider == exc.excursion.excursionPartner.id)
+                {
+                    if (excInfo.ContainsKey(exc.excursion.id))
+                    {
+                        exc.excursion.name = excInfo[exc.excursion.id].Key;
+
+                        if (excInfo[exc.excursion.id].Value)
+                            exc.excursion.name += " (changes not confirmed)";
+                    }
+
                     list.Add(exc);
+                }
 
             return list;
         }

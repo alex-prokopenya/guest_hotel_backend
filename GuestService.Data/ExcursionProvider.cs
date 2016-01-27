@@ -1272,11 +1272,11 @@ namespace GuestService.Data
             return result.ToArray();
         }
 
-        public static KeyValuePair<int, PriceInfo>[] GetExcursionOldPrices(int id, KeyValuePair<string, string>[] langs)
+        public static KeyValuePair<int, PriceInfo>[] GetExcursionOldPrices(int id, KeyValuePair<string, string>[] langs, KeyValuePair<string, string>[] regions)
         {
             var result = new List<KeyValuePair<int, PriceInfo>>();
 
-            var query = "       select inc, currency, language, datebeg, dateend, adult, child, inf, total, days, groupfrom, grouptill from exprice where excurs  = " + id;
+            var query = "       select inc, region, currency, language, datebeg, dateend, adult, child, inf, total, days, groupfrom, grouptill from exprice where excurs  = " + id;
 
             var res = DatabaseOperationProvider.Query(query, "categories", new { });
 
@@ -1285,6 +1285,12 @@ namespace GuestService.Data
             foreach (var langItem in langs)
                 if(!langsDict.ContainsKey(langItem.Key))
                     langsDict.Add(langItem.Key, langItem.Value);
+
+            var regionsDict = new Dictionary<string, string>();
+
+            foreach (var regionItem in regions)
+                if (!regionsDict.ContainsKey(regionItem.Key))
+                    regionsDict.Add(regionItem.Key, regionItem.Value);
 
             foreach (DataRow priceItem in res.Tables[0].Rows)
             {
@@ -1304,11 +1310,14 @@ namespace GuestService.Data
 
                 var lang = priceItem.ReadInt("language").ToString();
 
+                var region = priceItem.ReadInt("region").ToString();
+
                 priceInfo.Summ += priceItem.ReadInt("currency") == 8 ? " eur":" usd";
 
                 priceInfo.Weekdays = ConvertWeekdays(priceItem.ReadNullableString("days"));
                 priceInfo.Group = priceItem.ReadInt("groupfrom") + " - " + priceItem.ReadInt("grouptill");
-                priceInfo.Lang = (langsDict.ContainsKey(lang)) ? langsDict[lang] : "=";
+                priceInfo.Lang   = (langsDict.ContainsKey(lang)) ? langsDict[lang] : "-";
+                priceInfo.Region = (regionsDict.ContainsKey(region)) ? regionsDict[region] : "-";
                 priceInfo.Type = (priceItem.ReadDecimal("total") > 0) ? "Individual":"Group";
                 result.Add(new KeyValuePair<int, PriceInfo>(priceItem.ReadInt("inc"), priceInfo));
             }
@@ -1349,9 +1358,16 @@ namespace GuestService.Data
             //проверить, принадлежит ли экскурсия пользователю
             //удалить цену
 
-            var query = "delete from exprice where inc = @priceId and excurs in (select inc from excurs where partner = @partner)";
+            var query = "delete from exdetplan where excurs = (select excurs  from exprice where inc = @priceId and excurs in (select inc from excurs where partner = @partner)) and " +
+                            "isnull(region,   -2147483647) = (select region   from exprice where inc = @priceId and excurs in (select inc from excurs where partner = @partner)) and "+
+                            "isnull(language, -2147483647) = (select language from exprice where inc = @priceId and excurs in (select inc from excurs where partner = @partner))";
 
             var res = DatabaseOperationProvider.Query(query, "partners", new { priceId = id, partner = providerId });
+
+
+            query = "delete from exprice where inc = @priceId and excurs in (select inc from excurs where partner = @partner)";
+
+            res = DatabaseOperationProvider.Query(query, "partners", new { priceId = id, partner = providerId });
 
         }
     }

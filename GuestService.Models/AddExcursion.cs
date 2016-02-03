@@ -18,6 +18,21 @@ namespace GuestService.Models
             get;
             set;
         }
+        public int? guide
+        {
+            get;
+            set;
+        }
+        public int? food
+        {
+            get;
+            set;
+        }
+        public int? entryfees
+        {
+            get;
+            set;
+        }
 
         public string en_name
         {
@@ -42,6 +57,18 @@ namespace GuestService.Models
             get;
             set;
         }
+
+        public string exc_en_routetext
+        {
+            get;
+            set;
+        }
+        public string exc_ru_routetext
+        {
+            get;
+            set;
+        }
+
         public string exc_en_details
         {
             get;

@@ -115,7 +115,10 @@ namespace GuestService.Controllers.Api
       "                                                                     , area" +
       "                                                                     , logoid" +
       "                                                                     , _agerequired" +
-      "                                                                     , reqparams )" +
+      "                                                                     , reqparams"+
+      "                                                                     , guide" +
+      "                                                                     , food" +
+      "                                                                     , entryfees )" +
 
       "                                                           VALUES   (  @exname -- name - varchar(64) \n" +
       "                                                                     , @lname -- lname - varchar(64) \n" +
@@ -154,6 +157,9 @@ namespace GuestService.Controllers.Api
       "                                                                     , 0-- logoid - int\n" +
       "                                                                     , DEFAULT-- _agerequired - bit NOT NULL\n" +
       "                                                                    , ''-- reqparams - xml\n" +
+      "                                                                    , @guide-- guide - int\n" +
+      "                                                                    , @food-- food - bit\n" +
+      "                                                                    , @entryfees-- entryfees - bit\n" +
       "                                                                    ); SELECT SCOPE_IDENTITY()";
                 #endregion
 
@@ -168,11 +174,13 @@ namespace GuestService.Controllers.Api
                                                               {
                                                                   exname = (!string.IsNullOrEmpty(data.ru_name) ? data.ru_name : data.en_name),
                                                                   lname = data.en_name,
-                                                               //   region = data.exc_region.Value,
                                                                   note = note,
                                                                   route = data.exc_en_route,
                                                                   partner = provider,
-                                                                  excurstype = (data.exc_type.Value == 4) ? 3 : 2
+                                                                  excurstype = (data.exc_type.Value == 4) ? 3 : 2,
+                                                                  guide = (data.guide.HasValue) ? data.guide.Value : 0,
+                                                                  food = (data.food.HasValue) ? data.food.Value : 0,
+                                                                  entryfees = (data.entryfees.HasValue) ? data.entryfees.Value : 0,
 
                                                               });
                 #endregion
@@ -186,24 +194,24 @@ namespace GuestService.Controllers.Api
                 DatabaseOperationProvider.Query(query, "exc_cat", new { excurs = newId, excurscategory = data.exc_type.Value });
                 #endregion
 
-                #region description 
+                #region 2 - description 
 
-                    query = "INSERT INTO dbo.exdsc(excurs, tree, sorder, description) " +
+                query = "INSERT INTO dbo.exdsc(excurs, tree, sorder, description) " +
                             "VALUES (@excurs, 2, 1, @description); SELECT SCOPE_IDENTITY()";
 
-                    res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = newId, description = (data.lang == "ru" ? data.exc_ru_details + "\n" + data.exc_ru_cancelations + "\n" + data.exc_ru_stuff : "") });
+                    res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = newId, description = (data.lang == "ru" ? data.exc_ru_details : "") });
 
                     int descId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
 
                 #endregion 
 
-                #region langDescription 
+                #region 2 - langDescription 
                 query =  "INSERT INTO dbo.exdsclang(  exdsc , lang , description , changed) "+
                          "VALUES( @exdsc , @lang , @description , 0)";
 
 
                 DatabaseOperationProvider.Query(query, "exc_cat", new { exdsc = descId,
-                                                                        description = data.exc_en_details + "\n" + data.exc_en_cancelations + "\n" + data.exc_en_stuff,
+                                                                        description = data.exc_en_details ,
                                                                         lang = 1
                                                                         });
 
@@ -211,7 +219,103 @@ namespace GuestService.Controllers.Api
                     DatabaseOperationProvider.Query(query, "exc_cat", new
                     {
                         exdsc = descId,
-                        description = data.exc_ru_details + "\n" + data.exc_ru_cancelations + "\n" + data.exc_ru_stuff,
+                        description = data.exc_ru_details,
+                        lang = GetLanguageId(data.lang)
+                    });
+                #endregion
+
+                #region 6  - cancel
+
+                query = "INSERT INTO dbo.exdsc(excurs, tree, sorder, description) " +
+                            "VALUES (@excurs, 6, 1, @description); SELECT SCOPE_IDENTITY()";
+
+                res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = newId, description = (data.lang == "ru" ?  data.exc_ru_cancelations : "") });
+
+                int cancId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+
+                #endregion 
+
+                #region 6 - langCancel
+                query = "INSERT INTO dbo.exdsclang(  exdsc , lang , description , changed) " +
+                         "VALUES( @exdsc , @lang , @description , 0)";
+
+
+                DatabaseOperationProvider.Query(query, "exc_cat", new
+                {
+                    exdsc = cancId,
+                    description = data.exc_en_cancelations,
+                    lang = 1
+                });
+
+                if (data.lang != "ru")
+                    DatabaseOperationProvider.Query(query, "exc_cat", new
+                    {
+                        exdsc = cancId,
+                        description =  data.exc_ru_cancelations,
+                        lang = GetLanguageId(data.lang)
+                    });
+                #endregion
+
+                #region 3  - route
+
+                query = "INSERT INTO dbo.exdsc(excurs, tree, sorder, description) " +
+                            "VALUES (@excurs, 3, 1, @description); SELECT SCOPE_IDENTITY()";
+
+                res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = newId, description = (data.lang == "ru" ? data.exc_ru_routetext : "") });
+
+                int routeId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+
+                #endregion 
+
+                #region 3 - langRoute
+                query = "INSERT INTO dbo.exdsclang(  exdsc , lang , description , changed) " +
+                         "VALUES( @exdsc , @lang , @description , 0)";
+
+
+                DatabaseOperationProvider.Query(query, "exc_cat", new
+                {
+                    exdsc = routeId,
+                    description = data.exc_en_routetext,
+                    lang = 1
+                });
+
+                if (data.lang != "ru")
+                    DatabaseOperationProvider.Query(query, "exc_cat", new
+                    {
+                        exdsc = routeId,
+                        description = data.exc_ru_routetext,
+                        lang = GetLanguageId(data.lang)
+                    });
+                #endregion
+
+                #region 5  - special
+
+                query = "INSERT INTO dbo.exdsc(excurs, tree, sorder, description) " +
+                            "VALUES (@excurs, 5, 1, @description); SELECT SCOPE_IDENTITY()";
+
+                res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = newId, description = (data.lang == "ru" ? data.exc_ru_stuff : "") });
+
+                int specId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+
+                #endregion 
+
+                #region 5 - langSpecial
+                query = "INSERT INTO dbo.exdsclang(  exdsc , lang , description , changed) " +
+                         "VALUES( @exdsc , @lang , @description , 0)";
+
+
+                DatabaseOperationProvider.Query(query, "exc_cat", new
+                {
+                    exdsc = specId,
+                    description = data.exc_en_stuff,
+                    lang = 1
+                });
+
+                if (data.lang != "ru")
+                    DatabaseOperationProvider.Query(query, "exc_cat", new
+                    {
+                        exdsc = specId,
+                        description = data.exc_ru_stuff,
                         lang = GetLanguageId(data.lang)
                     });
                 #endregion
@@ -336,7 +440,7 @@ namespace GuestService.Controllers.Api
             return 0;
         }
         
-        private static int UpdateExcursion(UpdateExcursion data, int provider, Dictionary<string,string> langs)
+        private static int UpdateExcursion(UpdateExcursion data, int provider, Dictionary<string,string> langs, Dictionary<string, string> routes, Dictionary<string, string> stuffs, Dictionary<string, string> cancels)
         {
             try
             {
@@ -362,6 +466,12 @@ namespace GuestService.Controllers.Api
           "                                                                     , author = 9" +
           "                                                                     , editor = 9" +
           "                                                                     , freeexcurs = 1" +
+          "                                                                     , guide = @guide" +
+
+          "                                                                     , food = @food" +
+
+          "                                                                     , entryfees = @entryfees" +
+
           "                                                                     , edate = GETDATE()" +
 
           "                                                           Where inc = @exc_id";
@@ -383,7 +493,10 @@ namespace GuestService.Controllers.Api
                                                                      route = data.exc_en_route,
                                                                      partner = provider,
                                                                      excurstype = (data.exc_type.Value == 4) ? 3 : 2,
-                                                                     exc_id = data.ex_copy_id.Value
+                                                                     exc_id = data.ex_copy_id.Value,
+                                                                     guide = (data.guide.HasValue) ? data.guide.Value : 0,
+                                                                     food = (data.food.HasValue) ? data.food.Value : 0,
+                                                                     entryfees = (data.entryfees.HasValue) ? data.entryfees.Value : 0
                                                                  });
                     #endregion
 
@@ -446,6 +559,9 @@ namespace GuestService.Controllers.Api
           "                                                                     , logoid" +
           "                                                                     , _agerequired" +
           "                                                                     , reqparams"+
+          "                                                                     , guide" +
+          "                                                                     , food" +
+          "                                                                     , entryfees " +
           "                                                                     , excurs_id)" +
 
           "                                                           VALUES   ( @exname -- name - varchar(64) \n" +
@@ -485,7 +601,10 @@ namespace GuestService.Controllers.Api
           "                                                                     , 0-- logoid - int\n" +
           "                                                                     , DEFAULT-- _agerequired - bit NOT NULL\n" +
           "                                                                     , ''-- reqparams - xml\n" +
-          "                                                                     , @exc_id" +
+          "                                                                     , @guide " +
+          "                                                                     , @food " +
+          "                                                                     , @entryfees " +
+          "                                                                     , @exc_id " +
           "                                                                    ); SELECT SCOPE_IDENTITY()";
                     #endregion
 
@@ -505,7 +624,10 @@ namespace GuestService.Controllers.Api
                                                                      route = data.exc_en_route,
                                                                      partner = provider,
                                                                      excurstype = (data.exc_type.Value == 4) ? 3 : 2,
-                                                                     exc_id = data.ex_id.Value
+                                                                     exc_id = data.ex_id.Value,
+                                                                     guide = (data.guide.HasValue) ? data.guide.Value : 0,
+                                                                     food = (data.food.HasValue) ? data.food.Value : 0,
+                                                                     entryfees = (data.entryfees.HasValue) ? data.entryfees.Value : 0
                                                                  });
                     #endregion
 
@@ -522,15 +644,13 @@ namespace GuestService.Controllers.Api
 
                 //добавляем описания
                 #region description 
-
-
                 query = "INSERT INTO dbo.exdsc_temp(excurs, tree, sorder, description) " +
                         "VALUES (@excurs, 2, 1, @description); SELECT SCOPE_IDENTITY()";
 
                 var res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = data.ex_copy_id.Value, description = langs.ContainsKey("2")? langs["2"] : ""});
 
                 int descId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
-
+                #endregion
                 #region langDescription 
 
                 foreach (string langId in langs.Keys)
@@ -538,10 +658,85 @@ namespace GuestService.Controllers.Api
                     query = "INSERT INTO dbo.exdsclang_temp(  exdsc , lang , description , changed) " +
                              "VALUES( @exdsc , @lang , @description , 0)";
 
-                    DatabaseOperationProvider.Query(query, "exc_cat", new
+                    DatabaseOperationProvider.Query(query, "exc_desc", new
                     {
                         exdsc = descId,
                         description = langs[langId],
+                        lang = Convert.ToInt32(langId)
+                    });
+                }
+                #endregion
+
+                //добавляем описания
+                #region routes 
+                query = "INSERT INTO dbo.exdsc_temp(excurs, tree, sorder, description) " +
+                        "VALUES (@excurs, 3, 1, @description); SELECT SCOPE_IDENTITY()";
+
+                res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = data.ex_copy_id.Value, description = routes.ContainsKey("2") ? routes["2"] : "" });
+
+                descId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+                #endregion
+                #region langDescription 
+
+                foreach (string langId in routes.Keys)
+                {
+                    query = "INSERT INTO dbo.exdsclang_temp(  exdsc , lang , description , changed) " +
+                             "VALUES( @exdsc , @lang , @description , 0)";
+
+                    DatabaseOperationProvider.Query(query, "exc_desc", new
+                    {
+                        exdsc = descId,
+                        description = routes[langId],
+                        lang = Convert.ToInt32(langId)
+                    });
+                }
+                #endregion
+
+                //добавляем описания
+                #region cancels 
+                query = "INSERT INTO dbo.exdsc_temp(excurs, tree, sorder, description) " +
+                        "VALUES (@excurs, 6, 1, @description); SELECT SCOPE_IDENTITY()";
+
+                res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = data.ex_copy_id.Value, description = cancels.ContainsKey("2") ? cancels["2"] : "" });
+
+                descId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+                #endregion
+                #region langCancels 
+
+                foreach (string langId in cancels.Keys)
+                {
+                    query = "INSERT INTO dbo.exdsclang_temp(  exdsc , lang , description , changed) " +
+                             "VALUES( @exdsc , @lang , @description , 0)";
+
+                    DatabaseOperationProvider.Query(query, "exc_desc", new
+                    {
+                        exdsc = descId,
+                        description = cancels[langId],
+                        lang = Convert.ToInt32(langId)
+                    });
+                }
+                #endregion
+
+                //добавляем описания
+                #region stuffs 
+                query = "INSERT INTO dbo.exdsc_temp(excurs, tree, sorder, description) " +
+                        "VALUES (@excurs, 5, 1, @description); SELECT SCOPE_IDENTITY()";
+
+                res = DatabaseOperationProvider.Query(query, "exc_desc", new { excurs = data.ex_copy_id.Value, description = stuffs.ContainsKey("2") ? cancels["2"] : "" });
+
+                descId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+                #endregion
+                #region langStuffs
+
+                foreach (string langId in stuffs.Keys)
+                {
+                    query = "INSERT INTO dbo.exdsclang_temp(  exdsc , lang , description , changed) " +
+                             "VALUES( @exdsc , @lang , @description , 0)";
+
+                    DatabaseOperationProvider.Query(query, "exc_desc", new
+                    {
+                        exdsc = descId,
+                        description = stuffs[langId],
                         lang = Convert.ToInt32(langId)
                     });
                 }
@@ -569,7 +764,6 @@ namespace GuestService.Controllers.Api
                         DeleteImage(fileName);
                 }
                 #endregion
-                #endregion 
 
                 #region sendMessages
                 var exName = new GuestService.Data.AddExcursionData() { ExcursionName = data.en_name };
@@ -743,13 +937,28 @@ namespace GuestService.Controllers.Api
                 var req = HttpContext.Current.Request;
 
                 var descriptions = new Dictionary<string, string>();
+                var routes = new Dictionary<string, string>();
+                var cancells = new Dictionary<string, string>();
+                var stuffs = new Dictionary<string, string>();
+
                 var langs = PartnerProvider.GetPartnerLangs();
 
                 foreach (var langItem in langs)
-                    if (req["exc_"+ langItem.Key+ "_details"] != null)
+                {
+                    if (req["exc_" + langItem.Key + "_details"] != null)
                         descriptions.Add(langItem.Key, req["exc_" + langItem.Key + "_details"]);
 
-                UpdateExcursion(data, providerId, descriptions);
+                    if (req["exc_" + langItem.Key + "_routes"] != null)
+                        routes.Add(langItem.Key, req["exc_" + langItem.Key + "_routes"]);
+
+                    if (req["exc_" + langItem.Key + "_cancels"] != null)
+                        cancells.Add(langItem.Key, req["exc_" + langItem.Key + "_cancels"]);
+
+                    if (req["exc_" + langItem.Key + "_stuffs"] != null)
+                        stuffs.Add(langItem.Key, req["exc_" + langItem.Key + "_stuffs"]);
+                }
+
+                UpdateExcursion(data, providerId, descriptions, routes, stuffs, cancells);
 
                 result.Data = new { id = data.ex_id.Value };
             }

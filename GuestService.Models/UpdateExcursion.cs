@@ -35,6 +35,23 @@ namespace GuestService.Models
             set;
         }
 
+
+        public int? guide
+        {
+            get;
+            set;
+        }
+        public int? food
+        {
+            get;
+            set;
+        }
+        public int? entryfees
+        {
+            get;
+            set;
+        }
+
         public int? exc_type
         {
             get;

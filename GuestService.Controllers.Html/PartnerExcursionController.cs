@@ -530,7 +530,14 @@ namespace GuestService.Controllers.Html
                                                 out context.Types,
                                                 out context.Region,
                                                 out context.Descriptions,
-                                                out context.CopyExcursionId);
+                                                out context.CopyExcursionId,
+                                                out context.Food,
+                                                out context.Guide,
+                                                out context.EntryFees,
+                                                out context.Routes,
+                                                out context.Cancel,
+                                                out context.Stuffs
+                                                );
 
             context.OldPhotos = ExcursionProvider.GetExcursionOldPhotos(id.Value);
             context.OldPrices = ExcursionProvider.GetExcursionOldPrices(id.Value, context.Languages, context.Regions);

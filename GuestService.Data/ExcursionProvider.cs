@@ -1184,18 +1184,27 @@ namespace GuestService.Data
                                              out int[] types,
                                              out int region,
                                              out KeyValuePair<int, string>[] descriptions,
-                                             out int copyId
+                                             out int copyId,
+                                             out int food,
+                                             out int guide,
+                                             out int entryFees,
+                                             out KeyValuePair<int, string>[] routes,
+                                             out KeyValuePair<int, string>[] cancel,
+                                             out KeyValuePair<int, string>[] stuffs
                                         )
         {
             names = new KeyValuePair<int, string>[2];
             var tempTypes = new List<int>();
             var tempDescriptions = new List<KeyValuePair<int, string>>();
+            var tempRoutes = new List<KeyValuePair<int, string>>();
+            var tempCancel = new List<KeyValuePair<int, string>>();
+            var tempStuff  = new List<KeyValuePair<int, string>>();
 
             //определить, из какой таблицы брать описание
 
             //ищем данные в основной и временной таблицах
-            var query = "       select 0 as srt, inc, name, lname, route, region, edate from excurs      where inc = " + id +
-                        " union select 1 as srt, inc, name, lname, route, region, edate from excurs_temp where excurs_id = " + id + " order by srt asc";
+            var query = "       select 0 as srt, inc, name, lname, route, region, edate, food, guide, entryfees from excurs      where inc = " + id +
+                        " union select 1 as srt, inc, name, lname, route, region, edate, food, guide, entryfees from excurs_temp where excurs_id = " + id + " order by srt asc";
 
             var res = DatabaseOperationProvider.Query(query, "excurs", new { });
 
@@ -1228,6 +1237,10 @@ namespace GuestService.Data
             //маршрут и регион
             route  = row.ReadNullableString("route");
             region = row.ReadInt("region");
+            food = row.ReadInt("food");
+            guide = row.ReadInt("guide");
+            entryFees = row.ReadInt("entryfees");
+
 
             var exId = row.ReadInt("inc"); // айдишник оригинальной экскурсии или временной копии, зависит от даты послених изменений
 
@@ -1245,8 +1258,8 @@ namespace GuestService.Data
 
             #region описание экскурсии
             //читаем типы
-            query = "select  2 as lang, a.description from exdsc" + tablesPostfix + " as a where a.excurs = " + exId +
-             " union select  b.lang, b.description from exdsclang" + tablesPostfix + " as b where (select inc from exdsc" + tablesPostfix + " where excurs = "+ exId + " ) = b.exdsc";
+            query = "select  2 as lang, a.description from exdsc" + tablesPostfix + " as a where a.tree = 2 and a.excurs = " + exId +
+             " union select  b.lang, b.description from exdsclang" + tablesPostfix + " as b where (select inc from exdsc" + tablesPostfix + " where tree = 2 and excurs = " + exId + " ) = b.exdsc";
 
             res = DatabaseOperationProvider.Query(query, "descriptions", new { });
 
@@ -1254,6 +1267,45 @@ namespace GuestService.Data
                 tempDescriptions.Add(new KeyValuePair<int, string>(descItem.ReadInt("lang"), descItem.ReadNullableString("description")));
 
             descriptions = tempDescriptions.ToArray();
+            #endregion
+
+            #region описание маршрута
+            //читаем типы
+            query = "select  2 as lang, a.description from exdsc" + tablesPostfix + " as a where a.tree = 3 and a.excurs = " + exId +
+             " union select  b.lang, b.description from exdsclang" + tablesPostfix + " as b where (select inc from exdsc" + tablesPostfix + " where tree = 3 and  excurs = " + exId + " ) = b.exdsc";
+
+            res = DatabaseOperationProvider.Query(query, "routes", new { });
+
+            foreach (DataRow descItem in res.Tables[0].Rows)
+                tempRoutes.Add(new KeyValuePair<int, string>(descItem.ReadInt("lang"), descItem.ReadNullableString("description")));
+
+            routes = tempRoutes.ToArray();
+            #endregion
+
+            #region описание Cancel
+            //читаем типы
+            query = "select  2 as lang, a.description from exdsc" + tablesPostfix + " as a where  a.tree = 6 and  a.excurs = " + exId +
+             " union select  b.lang, b.description from exdsclang" + tablesPostfix + " as b where (select inc from exdsc" + tablesPostfix + " where  tree = 6 and excurs = " + exId + " ) = b.exdsc";
+
+            res = DatabaseOperationProvider.Query(query, "descriptions", new { });
+
+            foreach (DataRow descItem in res.Tables[0].Rows)
+                tempCancel.Add(new KeyValuePair<int, string>(descItem.ReadInt("lang"), descItem.ReadNullableString("description")));
+
+            cancel = tempCancel.ToArray();
+            #endregion
+
+            #region описание Stuff
+            //читаем типы
+            query = "select  2 as lang, a.description from exdsc" + tablesPostfix + " as a where  a.tree = 5 and  a.excurs = " + exId +
+             " union select  b.lang, b.description from exdsclang" + tablesPostfix + " as b where (select inc from exdsc" + tablesPostfix + " where  tree = 5 and excurs = " + exId + " ) = b.exdsc";
+
+            res = DatabaseOperationProvider.Query(query, "descriptions", new { });
+
+            foreach (DataRow descItem in res.Tables[0].Rows)
+                tempStuff.Add(new KeyValuePair<int, string>(descItem.ReadInt("lang"), descItem.ReadNullableString("description")));
+
+            stuffs = tempStuff.ToArray();
             #endregion
         }
 

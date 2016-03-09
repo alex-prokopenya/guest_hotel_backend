@@ -92,7 +92,7 @@ namespace GuestService.Notifications
             }
 
             // Address and send the message
-            m.From = new MailAddress(ConfigurationManager.AppSettings.Get("smtp_user"), "ExGo.com info");
+            m.From = new MailAddress(ConfigurationManager.AppSettings.Get("smtp_user"), ConfigurationManager.AppSettings.Get("email_user_name"));
             m.To.Add(new MailAddress(to));
 
             if(!string.IsNullOrEmpty(bcc))

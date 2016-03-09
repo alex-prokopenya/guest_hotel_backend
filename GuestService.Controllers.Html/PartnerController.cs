@@ -236,7 +236,7 @@ namespace GuestService.Controllers.Html
 
         }
 
-        private static string GetMd5Hash(int partnerId)
+        public static string GetMd5Hash(int partnerId)
         {
             byte[] keyInBytes = System.Text.UTF8Encoding.UTF8.GetBytes("secret_key");
             byte[] payloadInBytes = System.Text.UTF8Encoding.UTF8.GetBytes("secretkey" + partnerId);

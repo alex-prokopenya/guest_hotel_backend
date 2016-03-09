@@ -24,6 +24,20 @@ namespace GuestService.Controllers.Html
     [Authorize, HttpPreferences, UrlLanguage, WebSecurityInitializer]
     public class AccountController : BaseController
     {
+        private static string cookieSalt = "securesalt";
+
+        private static string GetMd5Hash(string inp)
+        {
+            byte[] keyInBytes = System.Text.UTF8Encoding.UTF8.GetBytes("secret_key");
+            byte[] payloadInBytes = System.Text.UTF8Encoding.UTF8.GetBytes(inp);
+
+            var md5 = new System.Security.Cryptography.HMACMD5(keyInBytes);
+            byte[] hash = md5.ComputeHash(payloadInBytes);
+
+            var result = BitConverter.ToString(hash).Replace("-", string.Empty);
+            return result;
+        }
+
         [AllowAnonymous]
         public ActionResult Confirm(string email, string token)
         {
@@ -177,10 +191,18 @@ namespace GuestService.Controllers.Html
             if (base.ModelState.IsValid)
             {
                 bool rememberMe = model.RememberMe;
+
                 if (WebSecurity.Login(model.UserName, model.Password, rememberMe))
                 {
+                    int userid = WebSecurity.GetUserId(model.UserName);
+
+                    SetCookie("userid", userid.ToString(), 12);
+                    SetCookie("username", model.UserName, 12);
+                    SetCookie("authhash", GetMd5Hash(model.UserName + userid + cookieSalt), 12);
+
                     return this.RedirectToLocal(returnUrl);
                 }
+
                 int userId = WebSecurity.GetUserId(model.UserName);
                 if ((userId > 0) && !WebSecurity.IsConfirmed(model.UserName))
                 {
@@ -203,9 +225,20 @@ namespace GuestService.Controllers.Html
 
         [HttpPost, ValidateAntiForgeryToken]
         public ActionResult LogOff()
-        {
+        { 
             WebSecurity.Logout();
+            SetCookie("userid", "", -12);
+            SetCookie("username", "", -12);
+            SetCookie("authhash", "", -12);
+
             return base.RedirectToAction("index", "welcome");
+        }
+
+        private void SetCookie(string name, string value, int livetime)
+        {
+            var cCookie = new HttpCookie(name, value);
+            cCookie.Expires = DateTime.Now.AddHours(livetime);
+            Response.Cookies.Add(cCookie);
         }
 
         [AllowAnonymous]
@@ -301,8 +334,6 @@ namespace GuestService.Controllers.Html
             {
                 try
                 {
-             
-
                     bool requireConfirmationToken = true;
                     string confirmationToken = WebSecurity.CreateUserAndAccount(model.UserName, model.Password, null, requireConfirmationToken);
                     this.SendRegistrationConfirmMail(ConfirmMailOperation.confirm, model.UserName, confirmationToken, "partner");

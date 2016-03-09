@@ -1400,7 +1400,7 @@ namespace GuestService.Data
 
             var table_postfix = isMain ? "" : "_temp";
 
-            var query = "delete from excurspicture"+ table_postfix + " where inc = @pictId and excurs in (select inc from excurs where partner = @partner)";
+            var query = "delete from excurspicture"+ table_postfix + " where inc = @pictId and (excurs in (select inc from excurs where partner = @partner) or excurs in (select inc from excurs_temp where partner = @partner))";
 
             var res = DatabaseOperationProvider.Query(query, "partners", new { pictId = id, partner = providerId });
         }

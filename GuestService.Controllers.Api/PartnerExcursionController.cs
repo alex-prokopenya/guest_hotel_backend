@@ -458,7 +458,7 @@ namespace GuestService.Controllers.Api
                     var updateQuery = " update dbo.excurs_temp set " +
           "                                                                       name  = @exname" +
           "                                                                     , lname = @lname" +
-          "                                                                     , region = @region" +
+
           "                                                                     , note = @note" +
           "                                                                     , route = @route" +
           "                                                                     , excurstype = @excurstype" +
@@ -488,7 +488,6 @@ namespace GuestService.Controllers.Api
                                                                  {
                                                                      exname = (!string.IsNullOrEmpty(data.ru_name) ? data.ru_name : data.en_name),
                                                                      lname = data.en_name,
-                                                                   //  region = data.exc_region.Value,
                                                                      note = note,
                                                                      route = data.exc_en_route,
                                                                      partner = provider,
@@ -501,7 +500,7 @@ namespace GuestService.Controllers.Api
                     #endregion
 
                     //удаляем старые descriptions + lang descriptions
-                    var deleteQuery = "delete from dbo.exdsclang_temp where exdsc = (select inc from exdsc_temp where excurs = @excurs)";
+                    var deleteQuery = "delete from dbo.exdsclang_temp where exdsc in (select inc from exdsc_temp where excurs = @excurs)";
 
                     DatabaseOperationProvider.Query(deleteQuery, "exc_desc_lang", new { excurs = data.ex_copy_id.Value });
 
@@ -525,7 +524,7 @@ namespace GuestService.Controllers.Api
           "                                                                       name " +
           "                                                                     , lname " +
           "                                                                     , duration " +
-          "                                                                     , region " +
+
           "                                                                     , horder " +
           "                                                                     , distance " +
           "                                                                     , maxinfage " +
@@ -567,7 +566,7 @@ namespace GuestService.Controllers.Api
           "                                                           VALUES   ( @exname -- name - varchar(64) \n" +
           "                                                                     , @lname -- lname - varchar(64) \n" +
           "                                                                     , ''-- duration - varchar(64)\n" +
-          "                                                                     , @region -- region - int\n" +
+
           "                                                                     , 0-- horder - bit\n" +
           "                                                                     , 0-- distance - money\n" +
           "                                                                     , 0-- maxinfage - int\n" +
@@ -619,7 +618,6 @@ namespace GuestService.Controllers.Api
                                                                  {
                                                                      exname = (!string.IsNullOrEmpty(data.ru_name) ? data.ru_name : data.en_name),
                                                                      lname = data.en_name,
-                                                                     region = data.exc_region.Value,
                                                                      note = note,
                                                                      route = data.exc_en_route,
                                                                      partner = provider,
@@ -639,7 +637,7 @@ namespace GuestService.Controllers.Api
                 var query = "INSERT INTO dbo.excatlist_temp (excurs, excurscategory) VALUES(@excurs, @excurscategory)";
 
                 DatabaseOperationProvider.Query(query, "exc_cat", new { excurs = data.ex_copy_id.Value, excurscategory = data.exc_cat.Value });
-                DatabaseOperationProvider.Query(query, "exc_cat", new { excurs = data.ex_copy_id.Value, excurscategory = data.exc_type.Value });
+                DatabaseOperationProvider.Query(query, "exc_type", new { excurs = data.ex_copy_id.Value, excurscategory = data.exc_type.Value });
                 #endregion
 
                 //добавляем описания
@@ -1397,7 +1395,7 @@ namespace GuestService.Controllers.Api
                         exc.excursion.name = excInfo[exc.excursion.id].Key;
 
                         if (excInfo[exc.excursion.id].Value)
-                            exc.excursion.name += " (changes not confirmed)";
+                            exc.excursion.name += ExcursionStrings.Get("ChangesNotConfirmed"); // " (changes not confirmed)";
                     }
 
                     list.Add(exc);

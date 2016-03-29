@@ -401,7 +401,18 @@ namespace GuestService.Data
 			}
 			return result;
 		}
-		public static void LinkGuestClaim(int userId, string name, int claim)
+
+        public static bool GetPaymentAllowed(int userId)
+        {
+            var res = DatabaseOperationProvider.Query("select b.usekickback from guestservice_UserProfile as a, partner as b where a.userId = @userId and a.partnerId = b.inc ", "kickback", new { userId = userId });
+
+            if (res.Tables[0].Rows.Count > 0)
+                return res.Tables[0].Rows[0].ReadBoolean("usekickback");
+            else
+                return false;
+        }
+
+        public static void LinkGuestClaim(int userId, string name, int claim)
 		{
 			System.Collections.Generic.List<GuestClaim> claims = GuestProvider.FindGuestClaims("", userId, name, new int?(claim), null);
 			if (claims != null && claims.FirstOrDefault((GuestClaim m) => m.claim == claim) != null)

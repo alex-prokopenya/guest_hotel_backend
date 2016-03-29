@@ -5,6 +5,12 @@ namespace GuestService.Data
 {
     public class ReservationState
     {
+        public bool agentPaymentAllowed
+        {
+            get;
+            set;
+        }
+
         public int? claimId
         {
             get;

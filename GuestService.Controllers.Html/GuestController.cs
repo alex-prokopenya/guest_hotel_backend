@@ -103,6 +103,7 @@ namespace GuestService.Controllers.Html
                 if ((reservationState != null) && reservationState.claimId.HasValue)
                 {
                     model.Claim = reservationState;
+                    model.Claim.agentPaymentAllowed = PartnerProvider.GetPaymentAllowed(currentUserId);
                     model.ExcursionTransfers = GuestProvider.GetExcursionTransferByClaim(UrlLanguage.CurrentLanguage, reservationState.claimId.Value);
                 }
             }
@@ -132,7 +133,8 @@ namespace GuestService.Controllers.Html
 					if (claim != null && claim.claimId.HasValue)
 					{
 						context.Claim = claim;
-						context.ExcursionTransfers = GuestProvider.GetExcursionTransferByClaim(UrlLanguage.CurrentLanguage, claim.claimId.Value);
+                        context.Claim.agentPaymentAllowed = PartnerProvider.GetPaymentAllowed(WebSecurity.CurrentUserId);
+                        context.ExcursionTransfers = GuestProvider.GetExcursionTransferByClaim(UrlLanguage.CurrentLanguage, claim.claimId.Value);
 						context.ShowOrderFindForm = false;
 					}
 				}
@@ -411,6 +413,10 @@ namespace GuestService.Controllers.Html
             if (WebSecurity.IsAuthenticated)
             {
                 int guestId = WebSecurity.CurrentUserId;
+
+                if (!PartnerProvider.GetPaymentAllowed(guestId))
+                    return null;
+
                 List<GuestClaim> claims = GuestProvider.GetLinkedClaims(UrlLanguage.CurrentLanguage, guestId);
                 int? detailedId = null;
                 if (id.HasValue)
@@ -466,10 +472,8 @@ namespace GuestService.Controllers.Html
                     var updatePaymentType = "update account set paymenttype = 2, note = '" + userName + "', partner =" + GetUserPartner(guestId) + " where inc = " + accId;
                     DatabaseOperationProvider.Query(updatePaymentType, "res", new { });
 
-
                     //redirect to order id  
                     return base.RedirectToAction("order", new { id = id.Value });
-
                 }
             }
             return null;

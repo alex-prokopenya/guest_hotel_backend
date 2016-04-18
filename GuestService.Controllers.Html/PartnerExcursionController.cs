@@ -536,7 +536,8 @@ namespace GuestService.Controllers.Html
                                                 out context.EntryFees,
                                                 out context.Routes,
                                                 out context.Cancel,
-                                                out context.Stuffs
+                                                out context.Stuffs,
+                                                out context.VideoUrl
                                                 );
 
             context.OldPhotos = ExcursionProvider.GetExcursionOldPhotos(id.Value);

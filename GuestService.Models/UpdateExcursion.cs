@@ -69,8 +69,13 @@ namespace GuestService.Models
             get;
             set;
         }
-      
-    
+
+        public string exc_video
+        {
+            get;
+            set;
+        }
+
         public int? exc_region
         {
             get;
@@ -81,6 +86,14 @@ namespace GuestService.Models
         public int[] ch_price { get; set; }
         public int[] inf_price { get; set; }
         public int[] total { get; set; }
+
+        public int[] netto_ad_price { get; set; }
+        public int[] netto_ch_price { get; set; }
+        public int[] netto_inf_price { get; set; }
+        public int[] netto_total { get; set; }
+        public int[] price_comis { get; set; }
+        public int[] comission_type { get; set; }
+
         public int[] group_from { get; set; }
         public int[] group_to { get; set; }
         public int[] group_type { get; set; }

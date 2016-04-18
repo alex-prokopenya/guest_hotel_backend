@@ -13,6 +13,8 @@ namespace GuestService.Models.Partner
         //айдишник копии экскурсии
         public int CopyExcursionId;
 
+        public string VideoUrl;
+
         public KeyValuePair<string, string>[] Regions;
 
         public KeyValuePair<string, string>[] Languages;

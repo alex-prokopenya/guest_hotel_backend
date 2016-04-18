@@ -1190,7 +1190,8 @@ namespace GuestService.Data
                                              out int entryFees,
                                              out KeyValuePair<int, string>[] routes,
                                              out KeyValuePair<int, string>[] cancel,
-                                             out KeyValuePair<int, string>[] stuffs
+                                             out KeyValuePair<int, string>[] stuffs,
+                                             out string videourl
                                         )
         {
             names = new KeyValuePair<int, string>[2];
@@ -1203,8 +1204,8 @@ namespace GuestService.Data
             //определить, из какой таблицы брать описание
 
             //ищем данные в основной и временной таблицах
-            var query = "       select 0 as srt, inc, name, lname, route, region, edate, food, guide, entryfees from excurs      where inc = " + id +
-                        " union select 1 as srt, inc, name, lname, route, region, edate, food, guide, entryfees from excurs_temp where excurs_id = " + id + " order by srt asc";
+            var query = "       select 0 as srt, inc, name, lname, route, region, edate, food, guide, entryfees, video_url from excurs      where inc = " + id +
+                        " union select 1 as srt, inc, name, lname, route, region, edate, food, guide, entryfees, video_url from excurs_temp where excurs_id = " + id + " order by srt asc";
 
             var res = DatabaseOperationProvider.Query(query, "excurs", new { });
 
@@ -1213,7 +1214,7 @@ namespace GuestService.Data
             string tablesPostfix = "";
             copyId = -1;
 
-            //если есть информация и о временной таблице
+            //если есть информация и во временной таблице
             if (res.Tables[0].Rows.Count > 1)
             { 
                 DateTime editDateOriginal   = row.ReadDateTime("edate");
@@ -1240,7 +1241,7 @@ namespace GuestService.Data
             food = row.ReadInt("food");
             guide = row.ReadInt("guide");
             entryFees = row.ReadInt("entryfees");
-
+            videourl = row.ReadNullableString("video_url");
 
             var exId = row.ReadInt("inc"); // айдишник оригинальной экскурсии или временной копии, зависит от даты послених изменений
 
@@ -1328,7 +1329,15 @@ namespace GuestService.Data
         {
             var result = new List<KeyValuePair<int, PriceInfo>>();
 
-            var query = "       select inc, region, currency, language, datebeg, dateend, adult, child, inf, total, days, groupfrom, grouptill from exprice where excurs  = " + id;
+            //переписать
+            //outer join
+            var query = "SELECT inc, region, currency, language, datebeg, dateend, "+
+                               " adult, child, inf, total, days, groupfrom, grouptill, "+
+                               " adult_brutto, adult_netto,  child_netto, child_brutto, "+
+                               " inf_netto, inf_brutto, total_netto, total_brutto " +
+
+                          " FROM exprice FULL JOIN exprice_ext on price_inc = inc " +
+                          " WHERE excurs  = " + id;
 
             var res = DatabaseOperationProvider.Query(query, "categories", new { });
 
@@ -1359,6 +1368,37 @@ namespace GuestService.Data
                                         priceItem.ReadDecimal("child"),
                                         priceItem.ReadDecimal("inf")
                                     });
+
+                //проверить цены нетто и брутто
+                if (priceItem.IsNull("total_brutto"))
+                {
+                    priceInfo.NettoSumm = "";
+                    priceInfo.MarketSumm = "";
+                }
+                else
+                {
+                    if (priceItem.ReadDecimal("total") > 0)
+                    {
+                        priceInfo.NettoSumm  = "total " + priceItem.ReadDecimal("total_netto").ToString("N0");
+                        priceInfo.MarketSumm = "total " + priceItem.ReadDecimal("total_brutto").ToString("N0");
+                    }
+                    else
+                    {
+                        priceInfo.NettoSumm = string.Format("adl {0:N0}, chd {1:N0}, inf {2:N0}", new object[] {
+
+                                        priceItem.ReadDecimal("adult_netto"),
+                                        priceItem.ReadDecimal("child_netto"),
+                                        priceItem.ReadDecimal("inf_netto")
+                                    });
+
+                        priceInfo.MarketSumm = string.Format("adl {0:N0}, chd {1:N0}, inf {2:N0}", new object[] {
+                                        priceItem.ReadDecimal("adult_brutto"),
+                                        priceItem.ReadDecimal("child_brutto"),
+                                        priceItem.ReadDecimal("inf_brutto")
+                                    });
+                    }
+                }
+
 
                 var lang = priceItem.ReadInt("language").ToString();
 

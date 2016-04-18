@@ -312,6 +312,7 @@
     <Compile Include="GuestService.Models.Excursion\PriceParam.cs" />
     <Compile Include="GuestService.Models.Excursion\SearchParam.cs" />
     <Compile Include="GuestService.Models.Guest\BriefContext.cs" />
+    <Compile Include="GuestService.Models.Guest\CancellationOrderWebParam.cs" />
     <Compile Include="GuestService.Models.Guest\DepartureContext.cs" />
     <Compile Include="GuestService.Models.Guest\DepartureParam.cs" />
     <Compile Include="GuestService.Models.Guest\FindOrderContext.cs" />
@@ -344,6 +345,7 @@
     <Compile Include="GuestService.Models.Welcome\GuestInfoContext.cs" />
     <Compile Include="GuestService.Models.Welcome\WelcomeParam.cs" />
     <Compile Include="GuestService.Models\AccountConfirmationTemplate.cs" />
+    <Compile Include="GuestService.Models\CancellationMessageTemplate.cs" />
     <Compile Include="GuestService.Models\UpdateExcursion.cs" />
     <Compile Include="GuestService.Models\AddExcursion.cs" />
     <Compile Include="GuestService.Models\BaseApiParam.cs" />

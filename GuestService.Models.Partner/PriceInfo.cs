@@ -10,6 +10,8 @@ namespace GuestService.Models.Partner
         public string Dates; //+
         public string Type; //+
         public string Summ; //+
+        public string NettoSumm; //+
+        public string MarketSumm; //+
         public string Lang; //+
         public string Region; //+
         public string Group; //+

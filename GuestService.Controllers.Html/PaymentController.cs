@@ -14,13 +14,51 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Web.Mvc;
+using GuestService.Models.Guest;
+using GuestService.Models;
+using GuestService.Notifications;
+
 namespace GuestService.Controllers.Html
 {
 	[HttpPreferences, WebSecurityInitializer, UrlLanguage]
 	public class PaymentController : BaseController
 	{
-	
-		[ActionName("index"), HttpGet]
+
+        [HttpPost, ActionName("cancelorder")]
+        public JsonResult SendCancellationOrder(CancellationOrderWebParam param)
+        {
+            try
+            {
+                ReservationState claim = BookingProvider.GetReservationState(UrlLanguage.CurrentLanguage, param.claimId);
+
+                var customer = claim.customer;
+
+                new SimpleEmailService().SendEmail<CancellationMessageTemplate>(Settings.EmailForCancellation,
+                                                                "send_cancellation_order",
+                                                                "en",
+                                                                new CancellationMessageTemplate()
+                                                                {
+                                                                    NumberOrder = param.claimId.ToString(),
+                                                                    ReasonCancellation = param.reason,
+                                                                    Name = customer.name,
+                                                                    Phone = customer.phone,
+                                                                    Email = customer.mail
+                                                                });
+
+                BookingProvider.ChangeClaimStatus(claim.claimId.Value, Settings.AnnulateRequestStatusId, claim.status.id);
+
+                return base.Json(new { ok = true });
+            }
+            catch (Exception)
+            {
+
+            }
+
+            return base.Json(new { ok = false });
+        }
+
+
+        [ActionName("index"), HttpGet]
 		public ActionResult Index(int? claim)
 		{
 			PaymentContext paymentContext = new PaymentContext();

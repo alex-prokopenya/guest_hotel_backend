@@ -109,6 +109,7 @@ namespace GuestService.Controllers.Api
       "                                                                     , reserv" +
       "                                                                     , stopsale" +
       "                                                                     , url" +
+      "                                                                     , video_url" +
       "                                                                     , vouchernote" +
       "                                                                     , active" +
       "                                                                     , lasting" +
@@ -150,6 +151,7 @@ namespace GuestService.Controllers.Api
       "                                                                     , DEFAULT-- reserv - bit NOT NULL\n" +
       "                                                                     , 0-- stopsale - int\n" +
       "                                                                     , ''-- url - varchar(255)\n" +
+      "                                                                     , @videourl-- url - varchar(255)\n" +
       "                                                                     , ''-- vouchernote - varchar(1024)\n" +
       "                                                                     , 0 -- active - bit NOT NULL\n" +
       "                                                                     , NULL-- 'YYYY-MM-DD hh:mm:ss'-- lasting - smalldatetime\n" +
@@ -181,6 +183,7 @@ namespace GuestService.Controllers.Api
                                                                   guide = (data.guide.HasValue) ? data.guide.Value : 0,
                                                                   food = (data.food.HasValue) ? data.food.Value : 0,
                                                                   entryfees = (data.entryfees.HasValue) ? data.entryfees.Value : 0,
+                                                                  videourl = data.exc_video
 
                                                               });
                 #endregion
@@ -349,6 +352,8 @@ namespace GuestService.Controllers.Api
                     #region AddPrice
                     try
                     {
+                        //получить id новой цены
+
                         query = "INSERT INTO dbo.exprice ( excurs , datebeg , dateend , adult , child , inf , currency, partner, " +
                                 " hotel , region , grouptown , author , editor , adate , edate , language , exgrouptype , complete, " +
                                 " total , groupfrom , grouptill , days , extime , grouppartner , fortourist , forpartner , isgroupsuppl, " +
@@ -356,16 +361,23 @@ namespace GuestService.Controllers.Api
                                 " VALUES (@exc, @adate, @edate, @ad_price, @ch_price, @inf_price, @currency, 2," +
                                 " DEFAULT, @region, DEFAULT, 9 , 9, GETDATE(), GETDATE(), @pr_lang, @group_type, @complete, " +
                                 " @total , @group_from , @group_to, @days, DEFAULT , DEFAULT , 1 , 1, DEFAULT, " +
-                                " DEFAULT , DEFAULT, @sdate_from, @sdate_to) ";
+                                " DEFAULT , DEFAULT, @sdate_from, @sdate_to); SELECT SCOPE_IDENTITY()";
 
-                        DatabaseOperationProvider.Query(query, "exc_cat", new
+
+                        var ad_price = data.group_type[i] == 1 ? data.ad_price[i] : 0;
+                        var ch_price = data.group_type[i] == 1 ? data.ch_price[i] : 0;
+                        var inf_price = data.group_type[i] == 1 ? data.inf_price[i] : 0;
+                        var total = data.group_type[i] != 1 ? data.total[i] : 0;
+
+
+                        res = DatabaseOperationProvider.Query(query, "exc_cat", new
                         {
                             region = data.price_region[i] > 0 ? data.price_region[i] : -2147483647,
                             exc = newId,
-                            ad_price = data.group_type[i]   == 1 ? data.ad_price[i] : 0,
-                            ch_price = data.group_type[i]   == 1 ? data.ch_price[i] : 0,
-                            inf_price = data.group_type[i]  == 1 ? data.inf_price[i] : 0,
-                            total = data.group_type[i]      != 1 ? data.total[i] : 0,
+                            ad_price = ad_price,
+                            ch_price = ch_price,
+                            inf_price = inf_price,
+                            total = total,
                             group_from = data.group_from[i],
                             group_to = data.group_to[i],
                             group_type = data.group_type[i],
@@ -378,6 +390,39 @@ namespace GuestService.Controllers.Api
                             sdate_to = data.sdate_to[i],
                             complete = data.group_type[i] == 2 ? 1 : 0
                         });
+
+                        newId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+
+                        //рассчитать нетто и брутто 
+                        string insQuery = "insert into  "+
+                                          " dbo.exprice_ext (price_inc, adult_netto, adult_brutto, child_netto, child_brutto, inf_netto, inf_brutto, total_netto, total_brutto) "+
+                                          " values(@newid, @adult_netto, @adult_brutto, @child_netto, @child_brutto, @inf_netto, @inf_brutto, @total_netto, @total_brutto)";
+
+                        //рассчитать коеффициент
+                        var comis = 0;
+                        if (data.comission_type[i] == 1)
+                            comis = data.price_comis[i];
+
+                        decimal coef = (100.0m - comis) / 100.0m;
+
+                        DatabaseOperationProvider.Query(insQuery, "price_ext", new
+                        {
+                            newid = newId,
+                            adult_netto = data.comission_type[i] == 1 ? Math.Round(coef * ad_price, 2): Convert.ToDecimal(data.netto_ad_price[i]),
+                            adult_brutto = ad_price,
+
+                            child_netto = data.comission_type[i] == 1 ? Math.Round(coef * ch_price, 2) : Convert.ToDecimal(data.netto_ch_price[i]),
+                            child_brutto = ch_price,
+
+                            inf_netto = data.comission_type[i] == 1 ? Math.Round(coef * inf_price, 2) : Convert.ToDecimal(data.netto_inf_price[i]),
+                            inf_brutto = inf_price,
+
+                            total_netto = data.comission_type[i] == 1 ? Math.Round(coef * total, 2) : Convert.ToDecimal(data.netto_total[i]),
+                            total_brutto = total
+                        });
+
+
+                        //внести их
                     }
                     catch (Exception ex)
                     {
@@ -551,6 +596,7 @@ namespace GuestService.Controllers.Api
           "                                                                     , reserv" +
           "                                                                     , stopsale" +
           "                                                                     , url" +
+          "                                                                     , video_url" +
           "                                                                     , vouchernote" +
           "                                                                     , active" +
           "                                                                     , lasting" +
@@ -593,6 +639,7 @@ namespace GuestService.Controllers.Api
           "                                                                     , DEFAULT-- reserv - bit NOT NULL\n" +
           "                                                                     , 0-- stopsale - int\n" +
           "                                                                     , ''-- url - varchar(255)\n" +
+          "                                                                     , @videourl-- url - varchar(255)\n" +
           "                                                                     , ''-- vouchernote - varchar(1024)\n" +
           "                                                                     , 0 -- active - bit NOT NULL\n" +
           "                                                                     , NULL-- 'YYYY-MM-DD hh:mm:ss'-- lasting - smalldatetime\n" +
@@ -625,7 +672,8 @@ namespace GuestService.Controllers.Api
                                                                      exc_id = data.ex_id.Value,
                                                                      guide = (data.guide.HasValue) ? data.guide.Value : 0,
                                                                      food = (data.food.HasValue) ? data.food.Value : 0,
-                                                                     entryfees = (data.entryfees.HasValue) ? data.entryfees.Value : 0
+                                                                     entryfees = (data.entryfees.HasValue) ? data.entryfees.Value : 0,
+                                                                     videourl = data.exc_video
                                                                  });
                     #endregion
 
@@ -794,6 +842,11 @@ namespace GuestService.Controllers.Api
             {
 
                 #region AddPrice
+                var ad_price = data.group_type[i] == 1 ? data.ad_price[i] : 0;
+                var ch_price = data.group_type[i] == 1 ? data.ch_price[i] : 0;
+                var inf_price = data.group_type[i] == 1 ? data.inf_price[i] : 0;
+                var total = data.group_type[i] != 1 ? data.total[i] : 0;
+
                 try
                 {
                     query = "INSERT INTO dbo.exprice ( excurs , datebeg , dateend , adult , child , inf , currency, partner, " +
@@ -803,27 +856,58 @@ namespace GuestService.Controllers.Api
                             " VALUES (@exc, @adate, @edate, @ad_price, @ch_price, @inf_price, @currency, 2," +
                             " DEFAULT, @region, DEFAULT, 9 , 9, GETDATE(), GETDATE(), @pr_lang, @group_type, @complete, " +
                             " @total , @group_from , @group_to, @days, DEFAULT , DEFAULT , 1 , 1, DEFAULT, " +
-                            " DEFAULT , DEFAULT, @sdate_from, @sdate_to) ";
+                            " DEFAULT , DEFAULT, @sdate_from, @sdate_to); SELECT SCOPE_IDENTITY() ";
 
-                    DatabaseOperationProvider.Query(query, "exc_price", new
+                    var res = DatabaseOperationProvider.Query(query, "exc_price", new
+                            {
+                                region = data.price_region[i] > 0 ? data.price_region[i] : -2147483647,
+                                exc = data.ex_id.Value,
+                                ad_price = ad_price,
+                                ch_price = ch_price,
+                                inf_price = inf_price,
+                                total = total,
+                                group_from = data.group_from[i],
+                                group_to = data.group_to[i],
+                                group_type = data.group_type[i],
+                                currency = data.currency[i],
+                                pr_lang = data.pr_lang[i],
+                                adate = data.adate[i],
+                                edate = data.edate[i],
+                                days = data.days[i],
+                                sdate_from = data.sdate_from[i],
+                                sdate_to = data.sdate_to[i],
+                                complete = data.group_type[i] == 2 ? 1 : 0
+                            });
+
+
+                    var newId = Convert.ToInt32(res.Tables[0].Rows[0][0]);
+
+                    //рассчитать нетто и брутто 
+                    string insQuery = "insert into  " +
+                                      " dbo.exprice_ext (price_inc, adult_netto, adult_brutto, child_netto, child_brutto, inf_netto, inf_brutto, total_netto, total_brutto) " +
+                                      " values(@newid, @adult_netto, @adult_brutto, @child_netto, @child_brutto, @inf_netto, @inf_brutto, @total_netto, @total_brutto)";
+
+                    //рассчитать коеффициент
+                    var comis = 0;
+                    if (data.comission_type[i] == 1)
+                        comis = data.price_comis[i];
+
+                    decimal coef = (100.0m - comis) / 100.0m;
+
+                    DatabaseOperationProvider.Query(insQuery, "price_ext", new
                     {
-                        region = data.price_region[i] > 0 ? data.price_region[i] : -2147483647,
-                        exc = data.ex_id.Value,
-                        ad_price = data.group_type[i] == 1 ? data.ad_price[i] : 0,
-                        ch_price = data.group_type[i] == 1 ? data.ch_price[i] : 0,
-                        inf_price = data.group_type[i] == 1 ? data.inf_price[i] : 0,
-                        total = data.group_type[i] != 1 ? data.total[i] : 0,
-                        group_from = data.group_from[i],
-                        group_to = data.group_to[i],
-                        group_type = data.group_type[i],
-                        currency = data.currency[i],
-                        pr_lang = data.pr_lang[i],
-                        adate = data.adate[i],
-                        edate = data.edate[i],
-                        days = data.days[i],
-                        sdate_from = data.sdate_from[i],
-                        sdate_to = data.sdate_to[i],
-                        complete = data.group_type[i] == 2 ? 1 : 0
+                        newid = newId,
+                        adult_netto = data.comission_type[i] == 1 ? Math.Round(coef * ad_price, 2) : Convert.ToDecimal(data.netto_ad_price[i]),
+                        adult_brutto = ad_price,
+
+                        child_netto = data.comission_type[i] == 1 ? Math.Round(coef * ch_price, 2) : Convert.ToDecimal(data.netto_ch_price[i]),
+                        child_brutto = ch_price,
+
+                        inf_netto = data.comission_type[i] == 1 ? Math.Round(coef * inf_price, 2) : Convert.ToDecimal(data.netto_inf_price[i]),
+                        inf_brutto = inf_price,
+
+                        total_netto = data.comission_type[i] == 1 ? Math.Round(coef * total, 2) : Convert.ToDecimal(data.netto_total[i]),
+                        total_brutto = total
                     });
                 }
                 catch (Exception ex)
@@ -1372,7 +1456,7 @@ namespace GuestService.Controllers.Api
         {
             //получить актуальные имена и статусы
             var res = DatabaseOperationProvider.Query("select inc, lname as name, freeexcurs from excurs where partner = @partner " + 
-                                                    "union select excurs_id as inc,  name, freeexcurs from excurs_temp where partner = @partner ", 
+                                                    "union select excurs_id as inc,  lname as name, freeexcurs from excurs_temp where partner = @partner ", 
                                                     "info", new { partner = provider} );
 
             if(UrlLanguage.CurrentLanguage == "ru")

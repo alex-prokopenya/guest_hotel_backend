@@ -741,20 +741,29 @@ namespace GuestService.Data
             {
                 using (SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["db"].ConnectionString))
                 {
-                    using (SqlCommand command = connection.CreateCommand())
+                    connection.Open();
+                    try
                     {
-                        connection.Open();
-                        //меняем статус
-                        command.CommandText = "update income.dbo.claim set [status] = " + newStatus + " where inc = " + claimId;
+                        using (SqlCommand command = connection.CreateCommand())
+                        {
 
-                        command.ExecuteNonQuery();
+                            //меняем статус
+                            command.CommandText = "update income.dbo.claim set [status] = " + newStatus + " where inc = " + claimId;
 
-                        //пишем в историю
-                        command.CommandText = "insert into " +
-                                            "income.dbo.claimhistory(  mode ,type ,claim ,edate ,recinc ,[user] ,name ,lname  ) " +
-                                             " values ('E','CANCELLATION'," + claimId + ", getdate(), " + claimId + ",1,'Cancellation request','Cancellation request')";
+                            command.ExecuteNonQuery();
 
-                        command.ExecuteNonQuery();
+                            //пишем в историю
+                            command.CommandText = "insert into " +
+                                                "income.dbo.claimhistory(  mode ,type ,claim ,edate ,recinc ,[user] ,name ,lname  ) " +
+                                                 " values ('E','CANCELLATION'," + claimId + ", getdate(), " + claimId + ",1,'Cancellation request','Cancellation request')";
+
+                            command.ExecuteNonQuery();
+                            connection.Close();
+                        }
+                    }
+                    catch (Exception)
+                    { }
+                    finally {
                         connection.Close();
                     }
                 }

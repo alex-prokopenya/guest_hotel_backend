@@ -33,17 +33,24 @@ namespace GuestService.Controllers.Html
 
                 var customer = claim.customer;
 
-                new SimpleEmailService().SendEmail<CancellationMessageTemplate>(Settings.EmailForCancellation,
-                                                                "send_cancellation_order",
-                                                                "en",
-                                                                new CancellationMessageTemplate()
-                                                                {
-                                                                    NumberOrder = param.claimId.ToString(),
-                                                                    ReasonCancellation = param.reason,
-                                                                    Name = customer.name,
-                                                                    Phone = customer.phone,
-                                                                    Email = customer.mail
-                                                                });
+                try
+                {
+                    new SimpleEmailService().SendEmail<CancellationMessageTemplate>(Settings.EmailForCancellation,
+                                                                                    "send_cancellation_order",
+                                                                                    "en",
+                                                                                    new CancellationMessageTemplate()
+                                                                                    {
+                                                                                        NumberOrder = param.claimId.ToString(),
+                                                                                        ReasonCancellation = param.reason,
+                                                                                        Name = customer.name,
+                                                                                        Phone = customer.phone,
+                                                                                        Email = customer.mail
+                                                                                    });
+                }
+                catch (Exception ex)
+                {
+
+                }
 
                 BookingProvider.ChangeClaimStatus(claim.claimId.Value, Settings.AnnulateRequestStatusId, claim.status.id);
 

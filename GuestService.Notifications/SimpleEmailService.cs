@@ -98,6 +98,22 @@ namespace GuestService.Notifications
             if(!string.IsNullOrEmpty(bcc))
                 m.Bcc.Add(new MailAddress(bcc));
 
+            //add cc and bcc
+
+            try
+            {
+                if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["smtp_cc"]))
+                    m.CC.Add(new MailAddress(ConfigurationManager.AppSettings["smtp_cc"]));
+            }
+            catch (Exception) { }
+
+            try
+            {
+                if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["smtp_bcc"]))
+                    m.Bcc.Add(new MailAddress(ConfigurationManager.AppSettings["smtp_bcc"]));
+            }
+            catch (Exception) { }
+
 
             m.Subject = subject;
             m.IsBodyHtml = true;
